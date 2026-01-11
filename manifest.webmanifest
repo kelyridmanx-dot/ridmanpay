@@ -1,0 +1,10 @@
+{
+  "name": "Ridman Pay",
+  "short_name": "RidmanPay",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0aa7c7",
+  "icons": []
+}
