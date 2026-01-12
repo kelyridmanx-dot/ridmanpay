@@ -1,5 +1,5 @@
 /* Ridman Pay - Service Worker */
-const CACHE_VERSION = "v10"; // 👈 subí versión para que NO se quede pegado
+const CACHE_VERSION = "v12"; // 👈 subí versión para que NO se quede pegado
 const CACHE_NAME = `ridmanpay-${CACHE_VERSION}`;
 
 const ASSETS = [
