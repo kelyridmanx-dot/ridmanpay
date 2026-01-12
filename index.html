@@ -5,307 +5,178 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0aa7c7" />
   <title>Ridman Pay</title>
-  <link rel="manifest" href="manifest.webmanifest">
+
+  <link rel="manifest" href="./manifest.webmanifest" />
 
   <style>
     :root{
       --bg:#f4f7fb;
       --card:#fff;
-      --ink:#172a3a;
-      --muted:#6b7480;
-      --line:#e2e8f0;
-      --shadow:0 18px 45px rgba(15, 23, 42, .12);
-      --teal:#0aa7c7;
-      --teal2:#0ea5e9;
-      --blue:#2563eb;
-      --danger:#ef4444;
-      --soft:#eef6ff;
-      --soft2:#e8fbff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#dbe5f1;
+      --blue:#0aa7c7;
+      --blue2:#0ea5e9;
+      --deep:#2f6fa3;
+      --ok:#16a34a;
+      --value:#1d4ed8;
+      --shadow: 0 12px 35px rgba(2,6,23,.10);
       --radius:18px;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:var(--bg);
-      color:var(--ink);
+      color:var(--text);
     }
-    .wrap{
-      max-width:980px;
-      margin:26px auto;
-      padding:0 16px 40px;
-    }
-
-    .hero{
-      background:linear-gradient(135deg, var(--teal2), var(--teal));
-      color:#fff;
-      border-radius:28px;
-      padding:30px 26px;
+    .wrap{max-width:980px;margin:0 auto;padding:18px 16px 28px;}
+    .top{
+      background:linear-gradient(180deg,#12b0ee,#0aa7c7);
+      border-radius:26px;
+      padding:28px 18px;
       box-shadow:var(--shadow);
       text-align:center;
+      color:#fff;
+      margin:8px 0 18px;
     }
-    .hero h1{
-      margin:0;
-      letter-spacing:.22em;
-      font-weight:900;
-      font-size:40px;
-    }
-    .hero p{
-      margin:10px 0 0;
-      font-weight:700;
-      opacity:.95;
-    }
-
+    .top .t1{font-weight:900;letter-spacing:.35em;font-size:42px;}
+    .top .t2{margin-top:10px;font-weight:700;opacity:.95;font-size:18px;}
     .card{
-      margin-top:18px;
       background:var(--card);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:22px;
+      border:1px solid rgba(219,229,241,.7);
+      padding:16px;
+      margin-bottom:16px;
     }
-
-    h2{
-      margin:0 0 12px;
-      font-size:52px;
+    h1{
+      margin:8px 0 14px;
+      font-size:54px;
+      line-height:1;
       font-weight:900;
-      letter-spacing:-.02em;
     }
-
     .tip{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      background:var(--soft2);
-      border:2px solid rgba(10,167,199,.25);
+      display:flex;gap:12px;
       border-radius:14px;
-      padding:12px 14px;
-      color:#0b3a45;
+      background:#e7f6ff;
+      border:2px solid #b9e6ff;
+      padding:14px;
+      margin-bottom:14px;
       font-weight:700;
-      margin:6px 0 18px;
     }
-    .tip .ico{font-size:18px; margin-top:1px}
-
-    /* ✅ NO CAMBIAR DISEÑO: SIEMPRE 1 COLUMNA */
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:14px;
+    .grid{display:grid;gap:12px;}
+    .grid2{display:grid;gap:12px;grid-template-columns:1fr 1fr;}
+    @media(max-width:720px){
+      h1{font-size:44px}
+      .top .t1{font-size:32px;letter-spacing:.25em}
+      .grid2{grid-template-columns:1fr}
     }
-
-    label{
-      display:block;
-      font-weight:800;
-      color:var(--muted);
-      margin-bottom:6px;
-      letter-spacing:.01em;
-    }
-
-    input, select, textarea{
+    label{display:block;margin:0 0 6px;color:var(--muted);font-weight:900}
+    input,select,textarea{
       width:100%;
       border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px 14px;
-      font-size:18px;
+      border-radius:12px;
+      padding:14px 12px;
+      font-size:16px;
       outline:none;
       background:#fff;
     }
-    textarea{min-height:88px; resize:vertical}
-
-    .btns{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .btn{
-      border:0;
-      padding:12px 16px;
-      border-radius:14px;
+    textarea{min-height:70px;resize:vertical}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+    button{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:12px;
+      padding:12px 14px;
       font-weight:900;
-      font-size:16px;
       cursor:pointer;
-      background:#e9eef7;
-      color:var(--ink);
     }
-    .btn.primary{background:var(--blue); color:#fff;}
-    .btn.dark{background:#0f172a; color:#fff;}
-    .btn.danger{background:rgba(239,68,68,.14); color:#8b1b1b;}
-    .btn.soft{background:rgba(10,167,199,.12); color:#064b57;}
-    .btn:active{transform:translateY(1px)}
-
-    .hr{
-      margin:18px 0 12px;
-      border-top:1px dashed rgba(107,116,128,.35);
+    .primary{background:var(--blue2);border-color:transparent;color:#fff}
+    .primary:hover{filter:brightness(.95)}
+    .danger{background:#fee2e2;border-color:#fecaca}
+    .share{
+      border-radius:14px;
+      background:#e7f6ff;
+      border:1px solid #b9e6ff;
+      padding:14px;
+      margin-bottom:12px;
     }
-
-    .historyHead{
+    .share h3{margin:0 0 10px;text-align:center}
+    .share p{margin:0;font-weight:700}
+    .hist .item{
       display:flex;
       justify-content:space-between;
-      align-items:flex-end;
       gap:10px;
-      flex-wrap:wrap;
-    }
-    .historyHead small{color:var(--muted); font-weight:700}
-    .list{
-      margin-top:10px;
-      display:grid;
-      gap:10px;
-    }
-    .item{
+      padding:12px;
       border:1px solid var(--line);
       border-radius:14px;
-      padding:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
+      margin-top:10px;
       background:#fff;
     }
-    .item .meta{
-      display:grid;
-      gap:3px;
-      line-height:1.1;
-    }
-    .item .meta .t{font-weight:900}
-    .item .meta .s{color:var(--muted); font-weight:700; font-size:13px}
-    .item .actions{
-      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end
-    }
-    .mini{
-      border:1px solid var(--line);
-      background:#f8fafc;
-      border-radius:12px;
-      padding:8px 10px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:13px;
-    }
-
-    /* MODAL */
-    .modalBack{
-      position:fixed; inset:0;
-      background:rgba(2, 6, 23, .55);
+    .hist .t{font-weight:900}
+    .hist .s{color:var(--muted);font-weight:800;margin-top:4px}
+    .mini{padding:10px 12px;border-radius:10px}
+    /* Modal */
+    .back{
+      position:fixed;inset:0;
+      background:rgba(2,6,23,.55);
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      z-index:9999;
+      padding:18px;
+      z-index:999;
     }
     .modal{
-      width:min(980px, 100%);
-      max-height:90vh;
-      overflow:auto;
+      width:min(960px, 100%);
       background:#fff;
       border-radius:18px;
+      padding:14px;
       box-shadow:var(--shadow);
-      padding:16px;
-      position:relative;
     }
-    .modalTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:6px 8px 10px;
-      border-bottom:1px solid var(--line);
-    }
-    .modalTop h3{
+    .modalTop{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+    .pill{font-weight:900}
+    .close{font-size:20px;padding:10px 12px}
+    .modalGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+    @media(max-width:900px){.modalGrid{grid-template-columns:1fr}}
+    pre{
       margin:0;
-      font-size:20px;
-      font-weight:1000;
-    }
-    .closeX{
-      border:0;
-      background:#fff;
-      border-radius:14px;
-      width:44px; height:44px;
-      cursor:pointer;
-      font-size:22px;
-      font-weight:900;
-      border:1px solid var(--line);
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#ecfeff;
-      border:1px solid rgba(10,167,199,.25);
-      font-weight:900;
-      margin:10px 0;
-    }
-
-    /* ✅ Recibo (texto): más pequeño y sin negrita */
-    .txtBox{
-      border:1px solid var(--line);
+      background:#0b1220;
+      color:#e2e8f0;
       border-radius:14px;
       padding:12px;
-      background:#fbfdff;
-      white-space:pre-wrap;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size:14px;
-      font-weight:400;
-      line-height:1.4;
+      overflow:auto;
+      font-size:13px;
+      line-height:1.35;
+      min-height:240px;
     }
-
-    .hint{
-      margin-top:10px;
-      background:#f1f5f9;
+    .imgBox{
       border:1px solid var(--line);
       border-radius:14px;
-      padding:10px 12px;
-      color:#0f172a;
-      font-weight:800;
-    }
-
-    .imgPreview{
-      margin-top:14px;
-      border-radius:18px;
-      border:1px solid var(--line);
-      overflow:hidden;
+      padding:10px;
+      display:grid;
+      place-items:center;
       background:#fff;
     }
-    .imgPreview img{width:100%; display:block}
-
-    .smallNote{
-      color:var(--muted);
-      font-weight:700;
-      font-size:12px;
-      margin-top:8px;
-    }
-
-    .footerNote{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:700;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+    img{max-width:100%;height:auto;display:block}
+    canvas{display:none}
+    small{color:var(--muted);font-weight:800}
   </style>
 </head>
+
 <body>
   <div class="wrap">
-    <div class="hero">
-      <h1>RIDMAN PAY</h1>
-      <p>Cotización de transferencia Perú - Rusia</p>
+    <div class="top">
+      <div class="t1">RIDMAN PAY</div>
+      <div class="t2">Cotización de transferencia Perú - Rusia</div>
     </div>
 
     <div class="card">
-      <h2>Nueva operación</h2>
+      <h1>Nueva operación</h1>
 
       <div class="tip">
-        <div class="ico">⚠️</div>
-        <div>
-          Tip: si el cliente entrega <b>SOLES</b>, normalmente usa el tipo de cambio <b>ALTO</b> (venta).
-          Si entrega <b>DÓLARES</b>, usa el tipo de cambio <b>BAJO</b> (compra).
-        </div>
+        <div>⚠️</div>
+        <div>Tip: si el cliente entrega <b>SOLES</b>, normalmente usa el tipo de cambio <b>ALTO</b> (venta). Si entrega <b>DÓLARES</b>, usa el tipo de cambio <b>BAJO</b> (compra).</div>
       </div>
 
       <div class="grid">
@@ -319,7 +190,7 @@
 
         <div>
           <label>Fecha</label>
-          <input id="fecha" type="date" />
+          <input id="fecha" type="date">
         </div>
 
         <div>
@@ -332,637 +203,586 @@
 
         <div>
           <label>Entrega</label>
-          <input id="entrega" type="number" step="0.01" placeholder="0.00" />
+          <input id="entrega" type="number" step="0.01" inputmode="decimal" placeholder="0.00">
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label>Tasa Perú (PEN → USD)</label>
+            <input id="tasaPeru" type="number" step="0.0001" inputmode="decimal" placeholder="3.9800">
+          </div>
+          <div>
+            <label>Tasa Rusia (USD → RUB)</label>
+            <input id="tasaRusia" type="number" step="0.0001" inputmode="decimal" placeholder="79.5000">
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label>Comisión</label>
+            <select id="modoComision">
+              <option value="AUTO">Automático</option>
+              <option value="MANUAL">Manual</option>
+            </select>
+            <div id="wrapComisionManual" style="display:none;margin-top:10px">
+              <input id="comisionManual" type="number" step="0.01" inputmode="decimal" placeholder="10.00">
+            </div>
+          </div>
+          <div>
+            <label>Cliente</label>
+            <input id="cliente" type="text" placeholder="MARIA">
+          </div>
         </div>
 
         <div>
-          <label>Tasa Perú (PEN por 1 USD)</label>
-          <input id="tasaPeru" type="number" step="0.0001" placeholder="0.0000" />
+          <label>Observación</label>
+          <textarea id="obs" placeholder="(Opcional)"></textarea>
         </div>
 
-        <div>
-          <label>Tasa Rusia (RUB por 1 USD)</label>
-          <input id="tasaRusia" type="number" step="0.0001" placeholder="0.0000" />
-        </div>
-
-        <div>
-          <label>Nombre del cliente (opcional)</label>
-          <input id="cliente" type="text" placeholder="Nombre del cliente" />
-        </div>
-
-        <div>
-          <label>Comisión</label>
-          <select id="modoComision">
-            <option value="AUTO">Automática (según tabla)</option>
-            <option value="MANUAL">Manual</option>
-          </select>
-        </div>
-
-        <div id="wrapComisionManual" style="display:none">
-          <label>Comisión (manual)</label>
-          <input id="comisionManual" type="number" step="0.01" placeholder="0.00" />
-        </div>
-
-        <div>
-          <label>Observación (opcional)</label>
-          <textarea id="obs" placeholder="Solo se muestra si escribes algo"></textarea>
+        <div class="btns">
+          <button class="primary" id="btnGuardarAbrir">Guardar y abrir</button>
+          <button id="btnPreview">Vista previa</button>
+          <button id="btnCopiarTexto">Copiar texto</button>
+          <button id="btnNuevo">Nuevo</button>
+          <button id="btnCsv">Exportar CSV</button>
+          <button class="danger" id="btnBorrarTodo">Borrar todo</button>
         </div>
       </div>
+    </div>
 
-      <div class="btns">
-        <button class="btn dark" id="btnPreview">Generar vista previa</button>
-        <button class="btn primary" id="btnGuardarAbrir">Guardar y abrir Recibo</button>
-        <button class="btn" id="btnCopiarTexto">Copiar recibo (texto)</button>
-        <button class="btn" id="btnCsv">Exportar Excel (CSV)</button>
-        <button class="btn danger" id="btnNuevo">Nuevo</button>
-        <button class="btn danger" id="btnBorrarTodo">Borrar registros</button>
+    <div class="card">
+      <div class="share">
+        <h3>Reenviar como IMAGEN (WhatsApp / Telegram)</h3>
+        <p>Si estás en laptop y no aparece “compartir”, usa Descargar imagen y la envías por WhatsApp Web / Telegram Desktop.</p>
       </div>
 
-      <div class="hr"></div>
-
-      <div class="historyHead">
-        <div>
-          <b>Historial</b> <small>(los más recientes arriba)</small>
-        </div>
-        <small>Consejo: si cambia el diseño, limpia el Service Worker (F12 → Aplicación → Almacenamiento → Borrar los datos del sitio).</small>
-      </div>
-
-      <div class="list" id="historial"></div>
-
-      <div class="footerNote">
-        <div>✅ Archivo local + http://localhost:8080 funcionan igual (recomendado: localhost).</div>
-        <div>📌 Si instalas como App (PWA), el botón de compartir suele enviar imagen directo.</div>
+      <div class="hist">
+        <div id="historial"></div>
       </div>
     </div>
   </div>
 
   <!-- MODAL -->
-  <div class="modalBack" id="modalBack">
-    <div class="modal">
+  <div class="back" id="modalBack">
+    <div class="modal" role="dialog" aria-modal="true">
       <div class="modalTop">
-        <h3>Recibo para el cliente</h3>
-        <button class="closeX" id="btnClose">×</button>
+        <div class="pill" id="pillDir">✅ Transferencia Perú → Rusia</div>
+        <button class="close" id="btnClose">✕</button>
       </div>
 
-      <div class="pill" id="pillDir">✅ Transferencia</div>
+      <div class="modalGrid">
+        <div>
+          <pre id="txtRecibo"></pre>
+          <div class="btns" style="margin-top:10px">
+            <button id="btnCopiarModal">Copiar texto</button>
+            <button class="primary" id="btnDescargarImg">Descargar imagen</button>
+            <button class="primary" id="btnShareImg">Compartir imagen</button>
+          </div>
+          <small id="smallNote"></small>
+        </div>
 
-      <div style="margin-top:8px; font-weight:900; color:var(--muted)">Recibo (texto)</div>
-      <div class="txtBox" id="txtRecibo"></div>
-
-      <div class="btns">
-        <button class="btn" id="btnCopiarModal">Copiar texto</button>
-        <button class="btn" id="btnDescargarImg">Descargar imagen</button>
-        <button class="btn soft" id="btnShareImg">Reenviar como IMAGEN (WhatsApp / Telegram)</button>
+        <div class="imgBox">
+          <img id="imgRecibo" alt="Vista previa (imagen)">
+          <canvas id="canvasRecibo" width="1080" height="1400"></canvas>
+        </div>
       </div>
-
-      <div class="hint">
-        Si estás en laptop y no aparece “compartir”, usa <b>Descargar imagen</b> y la envías por <b>WhatsApp Web / Telegram Desktop</b>.
-      </div>
-
-      <div style="margin-top:12px; font-weight:900; color:var(--muted)">Vista previa (imagen)</div>
-      <div class="imgPreview">
-        <img id="imgRecibo" alt="Recibo" />
-      </div>
-
-      <div class="smallNote" id="smallNote"></div>
-
-      <canvas id="canvasRecibo" width="1080" height="1350" style="display:none"></canvas>
     </div>
   </div>
 
-  <script>
-    const $ = (id)=>document.getElementById(id);
+<script>
+  const $ = (id)=>document.getElementById(id);
 
-    const round2 = (n)=> Math.round((n + Number.EPSILON)*100)/100;
-    const round4 = (n)=> Math.round((n + Number.EPSILON)*10000)/10000;
+  const round2 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
+  const round4 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 10000) / 10000;
 
-    const fmtMoney = (n, cur) => {
-      const v = Number(n||0);
-      const opt = { minimumFractionDigits:2, maximumFractionDigits:2 };
-      const num = v.toLocaleString("en-US", opt);
-      if(cur==="PEN") return `S/ ${num}`;
-      if(cur==="USD") return `USD ${num}`;
-      if(cur==="RUB") return `${num} RUB`;
-      return `${num} ${cur||""}`.trim();
+  // ✅ Formato general: siempre 2 decimales
+  const fmt2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtRate2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+
+  const moneyPrefix = (cur)=>{
+    if(cur==="PEN") return "S/ ";
+    if(cur==="USD") return "USD ";
+    return "";
+  };
+
+  // ✅ RUBLOS: redondeo a entero (0.50 hacia arriba) y mostrar .00
+  const fmtRubRecibe = (n)=>{
+    const roundedInt = Math.round(Number(n||0)); // 10000.50 -> 10001
+    return roundedInt.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+  };
+
+  function todayISO(){
+    const d = new Date();
+    const pad=(x)=>String(x).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function calcCommissionUSD(importeUSD){
+    const x = Number(importeUSD||0);
+    const eps = 1e-9;
+    if(x <= 300 + eps) return 10;
+    if(x <= 600 + eps) return 15;
+    if(x <= 1000 + eps) return 25;
+    if(x <= 1600 + eps) return 30;
+    return round2(x * 0.017);
+  }
+
+  function computeOperationFromInputs(){
+    const direccion = $("direccion").value;
+    const fecha = $("fecha").value || todayISO();
+    const monedaEntrega = $("monedaEntrega").value;
+    const entrega = Number($("entrega").value || 0);
+    const tasaPeru = Number($("tasaPeru").value || 0);
+    const tasaRusia = Number($("tasaRusia").value || 0);
+    const cliente = ($("cliente").value || "").trim();
+    const obs = ($("obs").value || "").trim();
+
+    let importeUSD = 0;
+    if(monedaEntrega === "PEN"){
+      importeUSD = tasaPeru>0 ? (entrega / tasaPeru) : 0;
+    } else {
+      importeUSD = entrega;
+    }
+
+    const comMode = $("modoComision").value;
+    let comisionUSD = 0;
+    if(comMode === "MANUAL"){
+      comisionUSD = Number($("comisionManual").value || 0);
+    } else {
+      comisionUSD = calcCommissionUSD(importeUSD);
+    }
+
+    const montoEnviarUSD = Math.max(0, importeUSD - comisionUSD);
+
+    let recibeText = "";
+    if(direccion === "PE_RU"){
+      const recibeRUB = montoEnviarUSD * tasaRusia;
+      // ✅ regla especial rublo
+      recibeText = `${fmtRubRecibe(recibeRUB)} rublos`;
+    } else {
+      const recibePEN = montoEnviarUSD * tasaPeru;
+      recibeText = `S/ ${fmt2(recibePEN)} (PEN)`;
+    }
+
+    const showTasaPenUsd = (monedaEntrega !== "USD");
+
+    return {
+      id: crypto.randomUUID(),
+      direccion, fecha, monedaEntrega,
+      entrega: round2(entrega),
+      tasaPeru: round4(tasaPeru),
+      tasaRusia: round4(tasaRusia),
+      cliente, obs,
+      showTasaPenUsd,
+      importeUSD: round2(importeUSD),
+      comisionUSD: round2(comisionUSD),
+      montoEnviarUSD: round2(montoEnviarUSD),
+      recibeText
     };
+  }
 
-    const fmtRate = (n)=> {
-      const v = Number(n||0);
-      return v.toLocaleString("en-US",{minimumFractionDigits:4, maximumFractionDigits:4});
-    };
+  function buildReceiptText(op){
+    const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
+    const lines = [];
+    lines.push(`✅ ${dirTxt}`);
+    lines.push(`Entrega: ${op.monedaEntrega==="PEN" ? `S/ ${fmt2(op.entrega)} (PEN)` : `USD ${fmt2(op.entrega)} (USD)`}`);
 
-    const todayISO = ()=>{
-      const d = new Date();
-      const pad=(x)=> String(x).padStart(2,"0");
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    };
-
-    function calcCommissionUSD(importeUSD){
-      const x = Number(importeUSD||0);
-      const eps = 1e-9;
-      if(x <= 300 + eps) return 10;
-      if(x <= 600 + eps) return 15;
-      if(x <= 1000 + eps) return 25;
-      if(x <= 1600 + eps) return 30;
-      return round2(x * 0.017);
+    if(op.showTasaPenUsd){
+      lines.push(`Tasa PEN → USD: 1 USD = ${fmtRate2(op.tasaPeru)} PEN`);
     }
 
-    function computeOperationFromInputs(){
-      const direccion = $("direccion").value;
-      const fecha = $("fecha").value || todayISO();
-      const monedaEntrega = $("monedaEntrega").value;
-      const entrega = Number($("entrega").value || 0);
-      const tasaPeru = Number($("tasaPeru").value || 0);
-      const tasaRusia = Number($("tasaRusia").value || 0);
-      const cliente = ($("cliente").value || "").trim();
-      const obs = ($("obs").value || "").trim();
-
-      let importeUSD = 0;
-      if(monedaEntrega === "PEN"){
-        importeUSD = tasaPeru>0 ? (entrega / tasaPeru) : 0;
-      } else {
-        importeUSD = entrega;
-      }
-
-      const comMode = $("modoComision").value;
-      let comisionUSD = 0;
-      if(comMode === "MANUAL"){
-        comisionUSD = Number($("comisionManual").value || 0);
-      } else {
-        comisionUSD = calcCommissionUSD(importeUSD);
-      }
-
-      const montoEnviarUSD = Math.max(0, importeUSD - comisionUSD);
-
-      let recibeText = "";
-      if(direccion === "PE_RU"){
-        const recibeRUB = montoEnviarUSD * tasaRusia;
-        recibeText = `${round2(recibeRUB).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2})} rublos`;
-      } else {
-        const recibePEN = montoEnviarUSD * tasaPeru;
-        recibeText = `${fmtMoney(recibePEN, "PEN")} (PEN)`;
-      }
-
-      const showTasaPenUsd = (monedaEntrega !== "USD");
-
-      return {
-        id: crypto.randomUUID(),
-        direccion, fecha, monedaEntrega,
-        entrega: round2(entrega),
-        tasaPeru: round4(tasaPeru),
-        tasaRusia: round4(tasaRusia),
-        cliente, obs,
-        showTasaPenUsd,
-        importeUSD: round2(importeUSD),
-        comisionUSD: round2(comisionUSD),
-        montoEnviarUSD: round2(montoEnviarUSD),
-        recibeText
-      };
+    if(op.direccion==="PE_RU"){
+      lines.push(`Tasa USD → RUB: 1 USD = ${fmtRate2(op.tasaRusia)} RUB`);
+    } else {
+      lines.push(`Tasa USD → PEN: 1 USD = ${fmtRate2(op.tasaPeru)} PEN`);
     }
 
-    function buildReceiptText(op){
-      const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
-      const lines = [];
-      lines.push(`✅ ${dirTxt}`);
-      lines.push(`Entrega: ${op.monedaEntrega==="PEN" ? fmtMoney(op.entrega,"PEN")+" (PEN)" : fmtMoney(op.entrega,"USD")+" (USD)"}`);
+    lines.push(`Importe (USD): USD ${fmt2(op.importeUSD)} USD`);
+    lines.push(`Comisión: USD ${fmt2(op.comisionUSD)}`);
+    lines.push(`Monto a enviar: USD ${fmt2(op.montoEnviarUSD)} USD`);
+    lines.push(`Recibe: ${op.recibeText}`);
 
-      if(op.showTasaPenUsd){
-        lines.push(`Tasa PEN → USD: 1 USD = ${fmtRate(op.tasaPeru)} PEN`);
-      }
+    if(op.cliente) lines.push(`Cliente: ${op.cliente}`);
+    if(op.obs) lines.push(`Obs: ${op.obs}`);
 
-      if(op.direccion==="PE_RU"){
-        lines.push(`Tasa USD → RUB: 1 USD = ${fmtRate(op.tasaRusia)} RUB`);
-      } else {
-        lines.push(`Tasa USD → PEN: 1 USD = ${fmtRate(op.tasaPeru)} PEN`);
-      }
+    return lines.join("\n");
+  }
 
-      lines.push(`Importe (USD): ${fmtMoney(op.importeUSD,"USD")} USD`);
-      lines.push(`Comisión: ${fmtMoney(op.comisionUSD,"USD")}`);
-      lines.push(`Monto a enviar: ${fmtMoney(op.montoEnviarUSD,"USD")} USD`);
-      lines.push(`Recibe: ${op.recibeText}`);
+  function fitText(ctx, text, maxWidth, baseFont){
+    let size = Number((baseFont.match(/(\d+)px/)||[])[1] || 28);
+    let weight = (baseFont.match(/^(\d+)\s/)||[])[1] || "600";
+    const family = baseFont.replace(/^\d+\s+\d+px\s+/,"").replace(/^\d+px\s+/,"");
+    while(size > 14){
+      ctx.font = `${weight} ${size}px ${family}`;
+      if(ctx.measureText(text).width <= maxWidth) break;
+      size -= 1;
+    }
+  }
 
-      if(op.cliente) lines.push(`Cliente: ${op.cliente}`);
-      if(op.obs) lines.push(`Obs: ${op.obs}`);
+  function drawReceiptToCanvas(op){
+    const c = $("canvasRecibo");
+    const ctx = c.getContext("2d");
 
-      return lines.join("\n");
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,c.width,c.height);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,c.width,c.height);
+
+    const pad = 56;
+    const cardX = pad;
+    const cardY = pad;
+    const cardW = c.width - pad*2;
+    const cardH = c.height - pad*2;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(15,23,42,.08)";
+    ctx.roundRect(cardX+8, cardY+10, cardW, cardH, 28);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#dbe5f1";
+    ctx.lineWidth = 4;
+    ctx.roundRect(cardX, cardY, cardW, cardH, 28);
+    ctx.fill();
+    ctx.stroke();
+
+    const headerH = 190;
+    ctx.fillStyle = "#2f6fa3";
+    ctx.roundRect(cardX, cardY, cardW, headerH, 28);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 86px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Ridman Pay", cardX + cardW/2, cardY + 120);
+
+    ctx.strokeStyle = "#dbe5f1";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cardX, cardY + headerH);
+    ctx.lineTo(cardX+cardW, cardY + headerH);
+    ctx.stroke();
+
+    const titleY = cardY + headerH + 75;
+
+    ctx.fillStyle = "#16a34a";
+    ctx.roundRect(cardX + 34, titleY - 46, 72, 72, 14);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 46px system-ui";
+    ctx.textAlign="center";
+    ctx.fillText("✓", cardX + 70, titleY + 6);
+
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 58px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign="left";
+    const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
+    ctx.fillText(dirTxt, cardX + 130, titleY + 6);
+
+    const tableTop = titleY + 44;
+    const tableLeft = cardX + 26;
+    const tableW = cardW - 52;
+    const colW = tableW/2;
+
+    const rows = [];
+    rows.push(["Entrega:", op.monedaEntrega==="PEN" ? `S/ ${fmt2(op.entrega)} (PEN)` : `USD ${fmt2(op.entrega)} (USD)`]);
+
+    if(op.showTasaPenUsd){
+      rows.push(["Tasa PEN → USD", `1 USD = ${fmtRate2(op.tasaPeru)} PEN`]);
     }
 
-    function fitText(ctx, text, maxWidth, baseFont){
-      let size = Number((baseFont.match(/(\d+)px/)||[])[1] || 28);
-      let weight = (baseFont.match(/^(\d+)\s/)||[])[1] || "600";
-      const family = baseFont.replace(/^\d+\s+\d+px\s+/,"").replace(/^\d+px\s+/,"");
-      while(size > 14){
-        ctx.font = `${weight} ${size}px ${family}`;
-        if(ctx.measureText(text).width <= maxWidth) break;
-        size -= 1;
-      }
+    if(op.direccion==="PE_RU"){
+      rows.push(["Tasa USD → RUB", `1 USD = ${fmtRate2(op.tasaRusia)} RUB`]);
+    } else {
+      rows.push(["Tasa USD → PEN", `1 USD = ${fmtRate2(op.tasaPeru)} PEN`]);
     }
 
-    function drawReceiptToCanvas(op){
-      const c = $("canvasRecibo");
-      const ctx = c.getContext("2d");
+    rows.push(["Importe (USD):", `USD ${fmt2(op.importeUSD)} USD`]);
+    rows.push(["Comisión:", `USD ${fmt2(op.comisionUSD)}`]);
+    rows.push(["Monto a enviar:", `USD ${fmt2(op.montoEnviarUSD)} USD`]);
+    rows.push(["Recibe:", op.recibeText]);
 
-      // ✅ MUY IMPORTANTE: reset completo
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = "source-over";
+    if(op.cliente) rows.push(["Cliente:", op.cliente.toUpperCase()]);
+    if(op.obs) rows.push(["Obs:", op.obs]);
 
-      ctx.clearRect(0,0,c.width,c.height);
+    const rowH = 112;
+    const tableH = rows.length * rowH;
 
-      // Fondo total
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
+    ctx.fill();
 
-      const pad = 56;
-      const cardX = pad;
-      const cardY = pad;
-      const cardW = c.width - pad*2;
-      const cardH = c.height - pad*2;
+    ctx.strokeStyle="#cfd8e3";
+    ctx.lineWidth=4;
+    ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
+    ctx.stroke();
 
-      // sombra
-      ctx.save();
-      ctx.fillStyle = "rgba(15,23,42,.08)";
-      ctx.roundRect(cardX+8, cardY+10, cardW, cardH, 28);
-      ctx.fill();
-      ctx.restore();
-
-      // tarjeta blanca (base)
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#dbe5f1";
-      ctx.lineWidth = 4;
-      ctx.roundRect(cardX, cardY, cardW, cardH, 28);
-      ctx.fill();
-      ctx.stroke();
-
-      // Header azul
-      const headerH = 190;
-      ctx.fillStyle = "#2f6fa3";
-      ctx.roundRect(cardX, cardY, cardW, headerH, 28);
-      ctx.fill();
-
-      // ✅ FIX CLAVE: cuerpo blanco debajo del header (para evitar “todo azul”)
-      ctx.fillStyle = "#ffffff";
+    for(let i=1;i<rows.length;i++){
+      const y = tableTop + i*rowH;
       ctx.beginPath();
-      ctx.rect(cardX, cardY + headerH - 2, cardW, cardH - headerH + 2);
-      ctx.fill();
-
-      // Re-dibuja borde tarjeta encima
-      ctx.strokeStyle = "#dbe5f1";
-      ctx.lineWidth = 4;
-      ctx.roundRect(cardX, cardY, cardW, cardH, 28);
+      ctx.moveTo(tableLeft, y);
+      ctx.lineTo(tableLeft+tableW, y);
       ctx.stroke();
+    }
 
-      // Título
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "900 86px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Ridman Pay", cardX + cardW/2, cardY + 120);
+    ctx.beginPath();
+    ctx.moveTo(tableLeft+colW, tableTop);
+    ctx.lineTo(tableLeft+colW, tableTop+tableH);
+    ctx.stroke();
 
-      // línea inferior header
-      ctx.strokeStyle = "#dbe5f1";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cardX, cardY + headerH);
-      ctx.lineTo(cardX+cardW, cardY + headerH);
-      ctx.stroke();
+    ctx.textBaseline="middle";
+    const labelFont = "600 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    const valueFont = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
 
-      // Sección dirección + check (sobre blanco)
-      const titleY = cardY + headerH + 75;
+    for(let i=0;i<rows.length;i++){
+      const yMid = tableTop + i*rowH + rowH/2;
 
-      // check
-      ctx.fillStyle = "#16a34a";
-      ctx.roundRect(cardX + 34, titleY - 46, 72, 72, 14);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "900 46px system-ui";
-      ctx.textAlign="center";
-      ctx.fillText("✓", cardX + 70, titleY + 6);
-
-      // texto dirección
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "900 58px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillStyle="#0f172a";
       ctx.textAlign="left";
-      const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
-      ctx.fillText(dirTxt, cardX + 130, titleY + 6);
+      fitText(ctx, rows[i][0], colW-34, labelFont);
+      ctx.fillText(rows[i][0], tableLeft+22, yMid);
 
-      // Tabla
-      const tableTop = titleY + 44;
-      const tableLeft = cardX + 26;
-      const tableW = cardW - 52;
-      const colW = tableW/2;
-
-      const rows = [];
-      rows.push(["Entrega:", op.monedaEntrega==="PEN" ? `${fmtMoney(op.entrega,"PEN")} (PEN)` : `${fmtMoney(op.entrega,"USD")} (USD)`]);
-
-      if(op.showTasaPenUsd){
-        rows.push(["Tasa PEN → USD", `1 USD = ${fmtRate(op.tasaPeru)} PEN`]);
-      }
-
-      if(op.direccion==="PE_RU"){
-        rows.push(["Tasa USD → RUB", `1 USD = ${fmtRate(op.tasaRusia)} RUB`]);
-      } else {
-        rows.push(["Tasa USD → PEN", `1 USD = ${fmtRate(op.tasaPeru)} PEN`]);
-      }
-
-      rows.push(["Importe (USD):", `${fmtMoney(op.importeUSD,"USD")} USD`]);
-      rows.push(["Comisión:", `${fmtMoney(op.comisionUSD,"USD")}`]);
-      rows.push(["Monto a enviar:", `${fmtMoney(op.montoEnviarUSD,"USD")} USD`]);
-      rows.push(["Recibe:", op.recibeText]);
-
-      if(op.cliente){
-        rows.push(["Cliente:", op.cliente.toUpperCase()]);
-      }
-      if(op.obs){
-        rows.push(["Obs:", op.obs]);
-      }
-
-      const rowH = 112;
-      const tableH = rows.length * rowH;
-
-      // ✅ fondo blanco de la tabla explícito
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
-      ctx.fill();
-
-      // borde tabla
-      ctx.strokeStyle="#cfd8e3";
-      ctx.lineWidth=4;
-      ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
-      ctx.stroke();
-
-      // líneas horizontales
-      for(let i=1;i<rows.length;i++){
-        const y = tableTop + i*rowH;
-        ctx.beginPath();
-        ctx.moveTo(tableLeft, y);
-        ctx.lineTo(tableLeft+tableW, y);
-        ctx.stroke();
-      }
-
-      // línea vertical
-      ctx.beginPath();
-      ctx.moveTo(tableLeft+colW, tableTop);
-      ctx.lineTo(tableLeft+colW, tableTop+tableH);
-      ctx.stroke();
-
-      // texto
-      ctx.textBaseline="middle";
-      const labelFont = "600 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      const valueFont = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
-      for(let i=0;i<rows.length;i++){
-        const yMid = tableTop + i*rowH + rowH/2;
-
-        ctx.fillStyle="#0f172a";
-        ctx.textAlign="left";
-        fitText(ctx, rows[i][0], colW-34, labelFont);
-        ctx.fillText(rows[i][0], tableLeft+22, yMid);
-
-        ctx.fillStyle="#1d4ed8";
-        ctx.textAlign="left";
-        fitText(ctx, rows[i][1], colW-34, valueFont);
-        ctx.fillText(rows[i][1], tableLeft+colW+22, yMid);
-      }
-
-      return c.toDataURL("image/png");
+      ctx.fillStyle="#1d4ed8";
+      ctx.textAlign="left";
+      fitText(ctx, rows[i][1], colW-34, valueFont);
+      ctx.fillText(rows[i][1], tableLeft+colW+22, yMid);
     }
 
-    const STORAGE_KEY = "ridmanpay_ops_v1";
+    return c.toDataURL("image/png");
+  }
 
-    function loadOps(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
+  const STORAGE_KEY = "ridmanpay_ops_v1";
+
+  function loadOps(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+  function saveOps(ops){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ops));
+  }
+
+  function renderHistory(){
+    const ops = loadOps();
+    const box = $("historial");
+    box.innerHTML = "";
+
+    if(!ops.length){
+      box.innerHTML = `<div style="color:#6b7480; font-weight:900; padding:8px 2px">Aún no hay registros.</div>`;
+      return;
     }
-    function saveOps(ops){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ops));
-    }
 
-    function renderHistory(){
-      const ops = loadOps();
-      const box = $("historial");
-      box.innerHTML = "";
+    ops.slice().reverse().forEach(op=>{
+      const dirTxt = op.direccion==="PE_RU" ? "PE → RU" : "RU → PE";
+      const title = `${op.fecha} — ${dirTxt} — ${op.monedaEntrega} ${op.entrega}`;
+      const sub = `Imp USD: ${op.importeUSD} | Com: ${op.comisionUSD} | Enviar: ${op.montoEnviarUSD}`;
 
-      if(!ops.length){
-        box.innerHTML = `<div style="color:#6b7480; font-weight:800; padding:8px 2px">Aún no hay registros.</div>`;
-        return;
-      }
+      const row = document.createElement("div");
+      row.className="item";
+      row.innerHTML = `
+        <div class="meta">
+          <div class="t">${title}</div>
+          <div class="s">${sub}${op.cliente ? " | " + op.cliente : ""}</div>
+        </div>
+        <div class="actions">
+          <button class="mini" data-act="open">Abrir</button>
+          <button class="mini" data-act="copy">Copiar</button>
+          <button class="mini" data-act="del">Eliminar</button>
+        </div>
+      `;
 
-      ops.slice().reverse().forEach(op=>{
-        const dirTxt = op.direccion==="PE_RU" ? "PE → RU" : "RU → PE";
-        const title = `${op.fecha} — ${dirTxt} — ${op.monedaEntrega} ${op.entrega}`;
-        const sub = `Imp USD: ${op.importeUSD} | Com: ${op.comisionUSD} | Enviar: ${op.montoEnviarUSD}`;
-
-        const el = document.createElement("div");
-        el.className="item";
-        el.innerHTML = `
-          <div class="meta">
-            <div class="t">${title}</div>
-            <div class="s">${sub}${op.cliente ? " | " + op.cliente : ""}</div>
-          </div>
-          <div class="actions">
-            <button class="mini" data-act="open">Abrir</button>
-            <button class="mini" data-act="copy">Copiar</button>
-            <button class="mini" data-act="del">Eliminar</button>
-          </div>
-        `;
-
-        el.querySelectorAll("button").forEach(b=>{
-          b.addEventListener("click", ()=>{
-            const act = b.getAttribute("data-act");
-            if(act==="open") openReceiptModal(op);
-            if(act==="copy"){
-              navigator.clipboard.writeText(buildReceiptText(op));
-              alert("✅ Texto copiado");
-            }
-            if(act==="del"){
-              const all = loadOps();
-              saveOps(all.filter(x=>x.id !== op.id));
-              renderHistory();
-            }
-          });
+      row.querySelectorAll("button").forEach(b=>{
+        b.addEventListener("click", ()=>{
+          const act = b.getAttribute("data-act");
+          if(act==="open") openReceiptModal(op);
+          if(act==="copy"){
+            navigator.clipboard.writeText(buildReceiptText(op));
+            alert("✅ Texto copiado");
+          }
+          if(act==="del"){
+            const all = loadOps();
+            saveOps(all.filter(x=>x.id !== op.id));
+            renderHistory();
+          }
         });
-
-        box.appendChild(el);
       });
-    }
 
-    let currentOp = null;
-    let currentDataUrl = null;
-
-    function openReceiptModal(op){
-      currentOp = op;
-      $("pillDir").textContent = "✅ " + (op.direccion==="PE_RU" ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú");
-      $("txtRecibo").textContent = buildReceiptText(op);
-
-      currentDataUrl = drawReceiptToCanvas(op);
-      $("imgRecibo").src = currentDataUrl;
-
-      const namePart = op.cliente ? `_${op.cliente.replaceAll(" ","_")}` : "";
-      $("smallNote").textContent = `Archivo sugerido: ridmanpay_${op.fecha}_${op.direccion}_${op.monedaEntrega}_${op.entrega}${namePart}.png`;
-
-      $("modalBack").style.display="flex";
-    }
-
-    function closeModal(){
-      $("modalBack").style.display="none";
-      currentOp = null;
-      currentDataUrl = null;
-    }
-
-    function exportCSV(){
-      const ops = loadOps();
-      if(!ops.length){
-        alert("No hay registros para exportar.");
-        return;
-      }
-      const headers = [
-        "fecha","direccion","monedaEntrega","entrega","tasaPeru","tasaRusia",
-        "importeUSD","comisionUSD","montoEnviarUSD","recibeText","cliente","obs"
-      ];
-      const rows = [headers.join(",")];
-      for(const o of ops){
-        const line = headers.map(h=>{
-          const v = (o[h] ?? "");
-          const s = String(v).replaceAll('"','""');
-          return `"${s}"`;
-        }).join(",");
-        rows.push(line);
-      }
-      const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ridmanpay_${todayISO()}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function setDefaults(){
-      $("fecha").value = todayISO();
-      $("modoComision").value = "AUTO";
-      $("wrapComisionManual").style.display = "none";
-      $("comisionManual").value = "";
-    }
-
-    $("modoComision").addEventListener("change", ()=>{
-      $("wrapComisionManual").style.display = ($("modoComision").value === "MANUAL") ? "block" : "none";
+      box.appendChild(row);
     });
+  }
 
-    $("btnPreview").addEventListener("click", ()=>{
-      openReceiptModal(computeOperationFromInputs());
-    });
+  let currentOp = null;
+  let currentDataUrl = null;
 
-    $("btnGuardarAbrir").addEventListener("click", ()=>{
-      const op = computeOperationFromInputs();
-      const ops = loadOps();
-      ops.push(op);
-      saveOps(ops);
+  function openReceiptModal(op){
+    currentOp = op;
+    $("pillDir").textContent = "✅ " + (op.direccion==="PE_RU" ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú");
+    $("txtRecibo").textContent = buildReceiptText(op);
+
+    currentDataUrl = drawReceiptToCanvas(op);
+    $("imgRecibo").src = currentDataUrl;
+
+    const namePart = op.cliente ? `_${op.cliente.replaceAll(" ","_")}` : "";
+    $("smallNote").textContent = `Archivo sugerido: ridmanpay_${op.fecha}_${op.direccion}_${op.monedaEntrega}_${op.entrega}${namePart}.png`;
+
+    $("modalBack").style.display="flex";
+  }
+
+  function closeModal(){
+    $("modalBack").style.display="none";
+    currentOp = null;
+    currentDataUrl = null;
+  }
+
+  function exportCSV(){
+    const ops = loadOps();
+    if(!ops.length){
+      alert("No hay registros para exportar.");
+      return;
+    }
+    const headers = [
+      "fecha","direccion","monedaEntrega","entrega","tasaPeru","tasaRusia",
+      "importeUSD","comisionUSD","montoEnviarUSD","recibeText","cliente","obs"
+    ];
+    const rows = [headers.join(",")];
+    for(const o of ops){
+      const line = headers.map(h=>{
+        const v = (o[h] ?? "");
+        const s = String(v).replaceAll('"','""');
+        return `"${s}"`;
+      }).join(",");
+      rows.push(line);
+    }
+    const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ridmanpay_${todayISO()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  $("modoComision").addEventListener("change", ()=>{
+    $("wrapComisionManual").style.display = ($("modoComision").value === "MANUAL") ? "block" : "none";
+  });
+
+  $("btnPreview").addEventListener("click", ()=>{
+    openReceiptModal(computeOperationFromInputs());
+  });
+
+  $("btnGuardarAbrir").addEventListener("click", ()=>{
+    const op = computeOperationFromInputs();
+    const ops = loadOps();
+    ops.push(op);
+    saveOps(ops);
+    renderHistory();
+    openReceiptModal(op);
+  });
+
+  $("btnCopiarTexto").addEventListener("click", ()=>{
+    navigator.clipboard.writeText(buildReceiptText(computeOperationFromInputs()));
+    alert("✅ Texto copiado");
+  });
+
+  $("btnCsv").addEventListener("click", exportCSV);
+
+  $("btnNuevo").addEventListener("click", ()=>{
+    $("direccion").value="PE_RU";
+    $("monedaEntrega").value="PEN";
+    $("entrega").value="";
+    $("tasaPeru").value="";
+    $("tasaRusia").value="";
+    $("cliente").value="";
+    $("obs").value="";
+    $("modoComision").value="AUTO";
+    $("wrapComisionManual").style.display="none";
+    $("comisionManual").value="";
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  $("btnBorrarTodo").addEventListener("click", ()=>{
+    if(confirm("¿Borrar todos los registros?")){
+      localStorage.removeItem(STORAGE_KEY);
       renderHistory();
-      openReceiptModal(op);
-    });
-
-    $("btnCopiarTexto").addEventListener("click", ()=>{
-      navigator.clipboard.writeText(buildReceiptText(computeOperationFromInputs()));
-      alert("✅ Texto copiado");
-    });
-
-    $("btnCsv").addEventListener("click", exportCSV);
-
-    $("btnNuevo").addEventListener("click", ()=>{
-      $("direccion").value="PE_RU";
-      $("monedaEntrega").value="PEN";
-      $("entrega").value="";
-      $("tasaPeru").value="";
-      $("tasaRusia").value="";
-      $("cliente").value="";
-      $("obs").value="";
-      $("modoComision").value="AUTO";
-      $("wrapComisionManual").style.display="none";
-      $("comisionManual").value="";
-      window.scrollTo({top:0, behavior:"smooth"});
-    });
-
-    $("btnBorrarTodo").addEventListener("click", ()=>{
-      if(confirm("¿Borrar todos los registros?")){
-        localStorage.removeItem(STORAGE_KEY);
-        renderHistory();
-      }
-    });
-
-    $("btnClose").addEventListener("click", closeModal);
-    $("modalBack").addEventListener("click", (e)=>{
-      if(e.target === $("modalBack")) closeModal();
-    });
-
-    $("btnCopiarModal").addEventListener("click", ()=>{
-      if(!currentOp) return;
-      navigator.clipboard.writeText(buildReceiptText(currentOp));
-      alert("✅ Texto copiado");
-    });
-
-    $("btnDescargarImg").addEventListener("click", ()=>{
-      if(!currentOp || !currentDataUrl) return;
-      const a = document.createElement("a");
-      const namePart = currentOp.cliente ? `_${currentOp.cliente.replaceAll(" ","_")}` : "";
-      a.download = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}_${currentOp.monedaEntrega}_${currentOp.entrega}${namePart}.png`;
-      a.href = currentDataUrl;
-      a.click();
-    });
-
-    $("btnShareImg").addEventListener("click", async ()=>{
-      if(!currentOp || !currentDataUrl) return;
-
-      try{
-        const res = await fetch(currentDataUrl);
-        const blob = await res.blob();
-        const fileName = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}.png`;
-        const file = new File([blob], fileName, {type:"image/png"});
-
-        if(navigator.canShare && navigator.canShare({files:[file]})){
-          await navigator.share({
-            title: "Ridman Pay",
-            text: "Recibo (imagen)",
-            files: [file]
-          });
-        } else if(navigator.share){
-          await navigator.share({
-            title: "Ridman Pay",
-            text: buildReceiptText(currentOp)
-          });
-          alert("Tu dispositivo no permite compartir imagen directo. Usa 'Descargar imagen'.");
-        } else {
-          alert("Tu navegador no permite compartir. Usa 'Descargar imagen'.");
-        }
-      }catch(err){
-        console.log(err);
-        alert("No se pudo compartir. Usa 'Descargar imagen'.");
-      }
-    });
-
-    (function init(){
-      setDefaults();
-      renderHistory();
-      if("serviceWorker" in navigator){
-        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-      }
-    })();
-
-    if(!CanvasRenderingContext2D.prototype.roundRect){
-      CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-        r = Math.min(r, w/2, h/2);
-        this.beginPath();
-        this.moveTo(x+r,y);
-        this.arcTo(x+w,y, x+w, y+h, r);
-        this.arcTo(x+w,y+h, x, y+h, r);
-        this.arcTo(x,y+h, x, y, r);
-        this.arcTo(x,y, x+w, y, r);
-        this.closePath();
-        return this;
-      }
     }
-  </script>
+  });
+
+  $("btnClose").addEventListener("click", closeModal);
+  $("modalBack").addEventListener("click", (e)=>{
+    if(e.target === $("modalBack")) closeModal();
+  });
+
+  $("btnCopiarModal").addEventListener("click", ()=>{
+    if(!currentOp) return;
+    navigator.clipboard.writeText(buildReceiptText(currentOp));
+    alert("✅ Texto copiado");
+  });
+
+  $("btnDescargarImg").addEventListener("click", ()=>{
+    if(!currentOp || !currentDataUrl) return;
+    const a = document.createElement("a");
+    const namePart = currentOp.cliente ? `_${currentOp.cliente.replaceAll(" ","_")}` : "";
+    a.download = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}_${currentOp.monedaEntrega}_${currentOp.entrega}${namePart}.png`;
+    a.href = currentDataUrl;
+    a.click();
+  });
+
+  $("btnShareImg").addEventListener("click", async ()=>{
+    if(!currentOp || !currentDataUrl) return;
+
+    try{
+      const res = await fetch(currentDataUrl);
+      const blob = await res.blob();
+      const fileName = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}.png`;
+      const file = new File([blob], fileName, {type:"image/png"});
+
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({
+          title: "Ridman Pay",
+          text: "Recibo (imagen)",
+          files: [file]
+        });
+      } else if(navigator.share){
+        await navigator.share({
+          title: "Ridman Pay",
+          text: buildReceiptText(currentOp)
+        });
+        alert("Tu dispositivo no permite compartir imagen directo. Usa 'Descargar imagen'.");
+      } else {
+        alert("Tu navegador no permite compartir. Usa 'Descargar imagen'.");
+      }
+    }catch(err){
+      console.log(err);
+      alert("No se pudo compartir. Usa 'Descargar imagen'.");
+    }
+  });
+
+  (function init(){
+    $("fecha").value = todayISO();
+    renderHistory();
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+    }
+  })();
+
+  if(!CanvasRenderingContext2D.prototype.roundRect){
+    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+      r = Math.min(r, w/2, h/2);
+      this.beginPath();
+      this.moveTo(x+r,y);
+      this.arcTo(x+w,y, x+w, y+h, r);
+      this.arcTo(x+w,y+h, x, y+h, r);
+      this.arcTo(x,y+h, x, y, r);
+      this.arcTo(x,y, x+w, y, r);
+      this.closePath();
+      return this;
+    }
+  }
+</script>
+
 </body>
 </html>
