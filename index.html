@@ -15,9 +15,14 @@
       --text:#0f172a;
       --muted:#64748b;
       --line:#dbe5f1;
-      --blue:#0aa7c7;
-      --blue2:#0ea5e9;
-      --deep:#2f6fa3;
+      --brand:#0aa7c7;
+      --brand2:#0ea5e9;
+
+      /* ✅ Azul más suave para el recibo */
+      --receiptBlue:#3f79a6;        /* banda superior */
+      --receiptStrip:#7fb2d2;       /* franja título */
+      --receiptBorder:#cfd8e3;
+
       --ok:#16a34a;
       --value:#1d4ed8;
       --shadow: 0 12px 35px rgba(2,6,23,.10);
@@ -92,7 +97,7 @@
       font-weight:900;
       cursor:pointer;
     }
-    .primary{background:var(--blue2);border-color:transparent;color:#fff}
+    .primary{background:var(--brand2);border-color:transparent;color:#fff}
     .primary:hover{filter:brightness(.95)}
     .danger{background:#fee2e2;border-color:#fecaca}
     .share{
@@ -117,6 +122,7 @@
     .hist .t{font-weight:900}
     .hist .s{color:var(--muted);font-weight:800;margin-top:4px}
     .mini{padding:10px 12px;border-radius:10px}
+
     /* Modal */
     .back{
       position:fixed;inset:0;
@@ -176,7 +182,11 @@
 
       <div class="tip">
         <div>⚠️</div>
-        <div>Tip: si el cliente entrega <b>SOLES</b>, normalmente usa el tipo de cambio <b>ALTO</b> (venta). Si entrega <b>DÓLARES</b>, usa el tipo de cambio <b>BAJO</b> (compra).</div>
+        <div>
+          Tip: si el cliente entrega <b>SOLES</b>, normalmente usa el tipo de cambio <b>ALTO</b> (venta).
+          Si entrega <b>DÓLARES</b>, usa el tipo de cambio <b>BAJO</b> (compra).
+          <b>Si entrega RUBLOS</b>, usamos tasa <b>RUB → USD</b>.
+        </div>
       </div>
 
       <div class="grid">
@@ -185,6 +195,7 @@
           <select id="direccion">
             <option value="PE_RU">Perú → Rusia</option>
             <option value="RU_PE">Rusia → Perú</option>
+            <option value="RU_CO">Rusia → Colombia</option>
           </select>
         </div>
 
@@ -198,6 +209,7 @@
           <select id="monedaEntrega">
             <option value="PEN">PEN (Soles)</option>
             <option value="USD">USD (Dólares)</option>
+            <option value="RUB">RUB (Rublo)</option>
           </select>
         </div>
 
@@ -208,12 +220,12 @@
 
         <div class="grid2">
           <div>
-            <label>Tasa Perú (PEN → USD)</label>
-            <input id="tasaPeru" type="number" step="0.0001" inputmode="decimal" placeholder="3.9800">
+            <label id="lblTasa1">Tasa Perú (PEN → USD)</label>
+            <input id="tasa1" type="number" step="0.0001" inputmode="decimal" placeholder="3.9800">
           </div>
           <div>
-            <label>Tasa Rusia (USD → RUB)</label>
-            <input id="tasaRusia" type="number" step="0.0001" inputmode="decimal" placeholder="79.5000">
+            <label id="lblTasa2">Tasa Rusia (USD → RUB)</label>
+            <input id="tasa2" type="number" step="0.0001" inputmode="decimal" placeholder="79.5000">
           </div>
         </div>
 
@@ -292,24 +304,45 @@
 <script>
   const $ = (id)=>document.getElementById(id);
 
+  // ========= CONFIG RUTAS (según tu Excel) =========
+  const ROUTES = {
+    PE_RU: {
+      key:"PE_RU",
+      from:"Perú", to:"Rusia",
+      entregaAllowed:["PEN","USD"],
+      tasa1Label:"Tasa Perú (PEN → USD)",
+      tasa2Label:"Tasa Rusia (USD → RUB)",
+      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X PEN
+      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X RUB
+      recibeCur:"RUB"
+    },
+    RU_PE: {
+      key:"RU_PE",
+      from:"Rusia", to:"Perú",
+      entregaAllowed:["RUB"],
+      tasa1Label:"Tasa Rusia (RUB → USD)",
+      tasa2Label:"Tasa Perú (USD → PEN)",
+      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X RUB
+      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X PEN
+      recibeCur:"PEN"
+    },
+    RU_CO: {
+      key:"RU_CO",
+      from:"Rusia", to:"Colombia",
+      entregaAllowed:["RUB"],
+      tasa1Label:"Tasa Rusia (RUB → USD)",
+      tasa2Label:"Tasa Colombia (USD → COP)",
+      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X RUB
+      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X COP
+      recibeCur:"COP"
+    }
+  };
+
+  // ========= HELPERS =========
   const round2 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
   const round4 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 10000) / 10000;
-
-  // ✅ Formato general: siempre 2 decimales
   const fmt2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
   const fmtRate2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
-
-  const moneyPrefix = (cur)=>{
-    if(cur==="PEN") return "S/ ";
-    if(cur==="USD") return "USD ";
-    return "";
-  };
-
-  // ✅ RUBLOS: redondeo a entero (0.50 hacia arriba) y mostrar .00
-  const fmtRubRecibe = (n)=>{
-    const roundedInt = Math.round(Number(n||0)); // 10000.50 -> 10001
-    return roundedInt.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
-  };
 
   function todayISO(){
     const d = new Date();
@@ -327,21 +360,65 @@
     return round2(x * 0.017);
   }
 
+  function formatEntrega(cur, amount){
+    if(cur==="PEN") return `S/ ${fmt2(amount)} (PEN)`;
+    if(cur==="USD") return `USD ${fmt2(amount)} (USD)`;
+    if(cur==="RUB") return `RUB ${fmt2(amount)} (RUB)`;
+    return `${cur} ${fmt2(amount)} (${cur})`;
+  }
+
+  function formatRecibe(cur, amount){
+    if(cur==="PEN") return `S/ ${fmt2(amount)} (PEN)`;
+    if(cur==="RUB") return `${fmt2(amount)} rublos`;
+    if(cur==="COP") return `COP ${fmt2(amount)} (COP)`;
+    return `${cur} ${fmt2(amount)} (${cur})`;
+  }
+
+  function applyRouteUI(){
+    const r = ROUTES[$("direccion").value] || ROUTES.PE_RU;
+
+    $("lblTasa1").textContent = r.tasa1Label;
+    $("lblTasa2").textContent = r.tasa2Label;
+
+    // Moneda entrega permitida según ruta
+    const sel = $("monedaEntrega");
+    const allowed = new Set(r.entregaAllowed);
+
+    [...sel.options].forEach(opt=>{
+      opt.disabled = !allowed.has(opt.value);
+      opt.hidden = !allowed.has(opt.value);
+    });
+
+    // Forzar selección válida
+    if(!allowed.has(sel.value)){
+      sel.value = r.entregaAllowed[0];
+    }
+
+    // Bloquear selector si solo hay 1 opción
+    sel.disabled = (r.entregaAllowed.length === 1);
+  }
+
   function computeOperationFromInputs(){
-    const direccion = $("direccion").value;
+    const r = ROUTES[$("direccion").value] || ROUTES.PE_RU;
+
+    const direccion = r.key;
     const fecha = $("fecha").value || todayISO();
     const monedaEntrega = $("monedaEntrega").value;
     const entrega = Number($("entrega").value || 0);
-    const tasaPeru = Number($("tasaPeru").value || 0);
-    const tasaRusia = Number($("tasaRusia").value || 0);
+
+    const tasa1 = Number($("tasa1").value || 0);
+    const tasa2 = Number($("tasa2").value || 0);
+
     const cliente = ($("cliente").value || "").trim();
     const obs = ($("obs").value || "").trim();
 
+    // ✅ convertir entrega → USD (para comisión y monto a enviar)
     let importeUSD = 0;
-    if(monedaEntrega === "PEN"){
-      importeUSD = tasaPeru>0 ? (entrega / tasaPeru) : 0;
-    } else {
+    if(monedaEntrega === "USD"){
       importeUSD = entrega;
+    } else {
+      // Formato: 1 USD = X (PEN/RUB)
+      importeUSD = (tasa1 > 0) ? (entrega / tasa1) : 0;
     }
 
     const comMode = $("modoComision").value;
@@ -354,68 +431,90 @@
 
     const montoEnviarUSD = Math.max(0, importeUSD - comisionUSD);
 
-    let recibeText = "";
-    if(direccion === "PE_RU"){
-      const recibeRUB = montoEnviarUSD * tasaRusia;
-      // ✅ regla especial rublo
-      recibeText = `${fmtRubRecibe(recibeRUB)} rublos`;
-    } else {
-      const recibePEN = montoEnviarUSD * tasaPeru;
-      recibeText = `S/ ${fmt2(recibePEN)} (PEN)`;
-    }
-
-    const showTasaPenUsd = (monedaEntrega !== "USD");
+    // ✅ recibe en moneda destino
+    const recibe = montoEnviarUSD * tasa2;
+    const recibeText = formatRecibe(r.recibeCur, recibe);
 
     return {
       id: crypto.randomUUID(),
-      direccion, fecha, monedaEntrega,
+      direccion,
+      fecha,
+      monedaEntrega,
       entrega: round2(entrega),
-      tasaPeru: round4(tasaPeru),
-      tasaRusia: round4(tasaRusia),
-      cliente, obs,
-      showTasaPenUsd,
+      tasa1: round4(tasa1),
+      tasa2: round4(tasa2),
+      cliente,
+      obs,
       importeUSD: round2(importeUSD),
       comisionUSD: round2(comisionUSD),
       montoEnviarUSD: round2(montoEnviarUSD),
-      recibeText
+      recibeCur: r.recibeCur,
+      recibeText,
+      from:r.from,
+      to:r.to,
+      tasa1Label:r.tasa1Label,
+      tasa2Label:r.tasa2Label
     };
   }
 
   function buildReceiptText(op){
-    const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
+    const from = op.from || (ROUTES[op.direccion]?.from || "—");
+    const to = op.to || (ROUTES[op.direccion]?.to || "—");
+    const dirTxt = `Transferencia ${from} → ${to}`;
+
+    const cliente = (op.cliente || op.clienteNombre || "").trim();
+    const obs = (op.obs || op.observacion || "").trim();
+
     const lines = [];
     lines.push(`✅ ${dirTxt}`);
-    lines.push(`Entrega: ${op.monedaEntrega==="PEN" ? `S/ ${fmt2(op.entrega)} (PEN)` : `USD ${fmt2(op.entrega)} (USD)`}`);
+    lines.push(`Fecha: ${op.fecha}`);
+    lines.push(`Entrega: ${formatEntrega(op.monedaEntrega, op.entrega)}`);
 
-    if(op.showTasaPenUsd){
-      lines.push(`Tasa PEN → USD: 1 USD = ${fmtRate2(op.tasaPeru)} PEN`);
+    // Mostrar tasas con formato simple
+    // tasa1: 1 USD = X (PEN/RUB)
+    if(op.monedaEntrega !== "USD"){
+      const cur = op.monedaEntrega;
+      lines.push(`Tasa ${cur} → USD: 1 USD = ${fmtRate2(op.tasa1)} ${cur}`);
     }
 
-    if(op.direccion==="PE_RU"){
-      lines.push(`Tasa USD → RUB: 1 USD = ${fmtRate2(op.tasaRusia)} RUB`);
-    } else {
-      lines.push(`Tasa USD → PEN: 1 USD = ${fmtRate2(op.tasaPeru)} PEN`);
-    }
+    // tasa2: 1 USD = X destino
+    lines.push(`Tasa USD → ${op.recibeCur}: 1 USD = ${fmtRate2(op.tasa2)} ${op.recibeCur}`);
 
     lines.push(`Importe (USD): USD ${fmt2(op.importeUSD)} USD`);
     lines.push(`Comisión: USD ${fmt2(op.comisionUSD)}`);
     lines.push(`Monto a enviar: USD ${fmt2(op.montoEnviarUSD)} USD`);
     lines.push(`Recibe: ${op.recibeText}`);
 
-    if(op.cliente) lines.push(`Cliente: ${op.cliente}`);
-    if(op.obs) lines.push(`Obs: ${op.obs}`);
+    if(cliente) lines.push(`Cliente: ${cliente}`);
+    if(obs) lines.push(`Observación: ${obs}`);
 
     return lines.join("\n");
   }
 
+  // ========= DIBUJO DEL RECIBO (IMAGEN) =========
+  function roundRectPath(ctx,x,y,w,h,r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
+
   function fitText(ctx, text, maxWidth, baseFont){
-    let size = Number((baseFont.match(/(\d+)px/)||[])[1] || 28);
-    let weight = (baseFont.match(/^(\d+)\s/)||[])[1] || "600";
-    const family = baseFont.replace(/^\d+\s+\d+px\s+/,"").replace(/^\d+px\s+/,"");
-    while(size > 14){
-      ctx.font = `${weight} ${size}px ${family}`;
-      if(ctx.measureText(text).width <= maxWidth) break;
-      size -= 1;
+    ctx.font = baseFont;
+    if(ctx.measureText(text).width <= maxWidth) return;
+    // reducir tamaño
+    const m = baseFont.match(/(\d+)px/);
+    if(!m) return;
+    let size = Number(m[1]);
+    while(size > 18){
+      const f = baseFont.replace(/\d+px/, `${size}px`);
+      ctx.font = f;
+      if(ctx.measureText(text).width <= maxWidth) return;
+      size -= 2;
     }
   }
 
@@ -426,6 +525,7 @@
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,c.width,c.height);
 
+    // Fondo blanco total
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0,0,c.width,c.height);
 
@@ -433,93 +533,121 @@
     const cardX = pad;
     const cardY = pad;
     const cardW = c.width - pad*2;
-    const cardH = c.height - pad*2;
 
-    ctx.save();
-    ctx.fillStyle = "rgba(15,23,42,.08)";
-    ctx.roundRect(cardX+8, cardY+10, cardW, cardH, 28);
-    ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#dbe5f1";
-    ctx.lineWidth = 4;
-    ctx.roundRect(cardX, cardY, cardW, cardH, 28);
-    ctx.fill();
-    ctx.stroke();
-
-    const headerH = 190;
-    ctx.fillStyle = "#2f6fa3";
-    ctx.roundRect(cardX, cardY, cardW, headerH, 28);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 86px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Ridman Pay", cardX + cardW/2, cardY + 120);
-
-    ctx.strokeStyle = "#dbe5f1";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(cardX, cardY + headerH);
-    ctx.lineTo(cardX+cardW, cardY + headerH);
-    ctx.stroke();
-
-    const titleY = cardY + headerH + 75;
-
-    ctx.fillStyle = "#16a34a";
-    ctx.roundRect(cardX + 34, titleY - 46, 72, 72, 14);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 46px system-ui";
-    ctx.textAlign="center";
-    ctx.fillText("✓", cardX + 70, titleY + 6);
-
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "900 58px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.textAlign="left";
-    const dirTxt = (op.direccion==="PE_RU") ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú";
-    ctx.fillText(dirTxt, cardX + 130, titleY + 6);
-
-    const tableTop = titleY + 44;
-    const tableLeft = cardX + 26;
-    const tableW = cardW - 52;
-    const colW = tableW/2;
+    // Contenido tabla (✅ incluye cliente SIEMPRE si existe)
+    const cliente = (op.cliente || op.clienteNombre || "").trim();
+    const obs = (op.obs || op.observacion || "").trim();
 
     const rows = [];
-    rows.push(["Entrega:", op.monedaEntrega==="PEN" ? `S/ ${fmt2(op.entrega)} (PEN)` : `USD ${fmt2(op.entrega)} (USD)`]);
+    rows.push(["Fecha:", op.fecha]);
+    rows.push(["Entrega:", formatEntrega(op.monedaEntrega, op.entrega)]);
 
-    if(op.showTasaPenUsd){
-      rows.push(["Tasa PEN → USD", `1 USD = ${fmtRate2(op.tasaPeru)} PEN`]);
+    if(op.monedaEntrega !== "USD"){
+      rows.push([`Tasa ${op.monedaEntrega} → USD`, `1 USD = ${fmtRate2(op.tasa1)} ${op.monedaEntrega}`]);
     }
 
-    if(op.direccion==="PE_RU"){
-      rows.push(["Tasa USD → RUB", `1 USD = ${fmtRate2(op.tasaRusia)} RUB`]);
-    } else {
-      rows.push(["Tasa USD → PEN", `1 USD = ${fmtRate2(op.tasaPeru)} PEN`]);
-    }
-
+    rows.push([`Tasa USD → ${op.recibeCur}`, `1 USD = ${fmtRate2(op.tasa2)} ${op.recibeCur}`]);
     rows.push(["Importe (USD):", `USD ${fmt2(op.importeUSD)} USD`]);
     rows.push(["Comisión:", `USD ${fmt2(op.comisionUSD)}`]);
     rows.push(["Monto a enviar:", `USD ${fmt2(op.montoEnviarUSD)} USD`]);
     rows.push(["Recibe:", op.recibeText]);
 
-    if(op.cliente) rows.push(["Cliente:", op.cliente.toUpperCase()]);
-    if(op.obs) rows.push(["Obs:", op.obs]);
+    if(cliente) rows.push(["Cliente:", cliente.toUpperCase()]);
+    if(obs) rows.push(["Obs:", obs]);
 
-    const rowH = 112;
+    // Medidas
+    const headerH = 200;         // banda azul grande
+    const stripH  = 90;          // franja titulo
+    const gapAfterStrip = 18;
+
+    const rowH = 98;
     const tableH = rows.length * rowH;
 
+    const cardH = headerH + stripH + gapAfterStrip + tableH + 34; // ✅ sin “bloque azul” abajo
+    const cardY2 = cardY;
+    const cardH2 = Math.min(cardH, c.height - pad*2);
+
+    // sombra suave
+    ctx.save();
+    ctx.fillStyle = "rgba(15,23,42,.08)";
+    roundRectPath(ctx, cardX+10, cardY2+12, cardW, cardH2, 28);
+    ctx.fill();
+    ctx.restore();
+
+    // tarjeta blanca con borde gris
     ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--receiptBorder").trim() || "#cfd8e3";
+    ctx.lineWidth = 4;
+    roundRectPath(ctx, cardX, cardY2, cardW, cardH2, 28);
+    ctx.fill();
+    ctx.stroke();
+
+    // Header azul (arriba)
+    const blue = getComputedStyle(document.documentElement).getPropertyValue("--receiptBlue").trim() || "#3f79a6";
+    ctx.fillStyle = blue;
+    roundRectPath(ctx, cardX, cardY2, cardW, headerH, 28);
+    ctx.fill();
+
+    // Texto Ridman Pay
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "900 84px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.fillText("Ridman Pay", cardX + cardW/2, cardY2 + 130);
+
+    // Línea separación
+    ctx.strokeStyle = "rgba(255,255,255,.55)";
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
+    ctx.moveTo(cardX + 42, cardY2 + headerH);
+    ctx.lineTo(cardX + cardW - 42, cardY2 + headerH);
+    ctx.stroke();
+
+    // Franja título (azul claro) + check + texto (con auto-ajuste)
+    const stripY = cardY2 + headerH + 14;
+    const strip = getComputedStyle(document.documentElement).getPropertyValue("--receiptStrip").trim() || "#7fb2d2";
+    ctx.fillStyle = strip;
+    roundRectPath(ctx, cardX + 22, stripY, cardW - 44, stripH, 18);
+    ctx.fill();
+
+    // Check
+    ctx.fillStyle = "#22c55e";
+    roundRectPath(ctx, cardX + 46, stripY + 18, 54, 54, 12);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 38px system-ui";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText("✓", cardX + 73, stripY + 45);
+
+    // Título transferencia
+    const dirTxt = `Transferencia ${op.from || ROUTES[op.direccion]?.from || ""} → ${op.to || ROUTES[op.direccion]?.to || ""}`;
+    ctx.fillStyle = "#0f172a";
+    ctx.textAlign="left";
+    ctx.textBaseline="middle";
+    const titleX = cardX + 115;
+    const titleY = stripY + (stripH/2);
+    const maxTitleW = (cardX + cardW - 44) - titleX - 18;
+    const baseTitleFont = "900 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    fitText(ctx, dirTxt, maxTitleW, baseTitleFont);
+    ctx.fillText(dirTxt, titleX, titleY);
+
+    // Tabla (blanca)
+    const tableTop = stripY + stripH + gapAfterStrip;
+    const tableLeft = cardX + 26;
+    const tableW = cardW - 52;
+    const colW = tableW/2;
+
+    ctx.fillStyle = "#ffffff";
+    roundRectPath(ctx, tableLeft, tableTop, tableW, tableH, 18);
     ctx.fill();
 
     ctx.strokeStyle="#cfd8e3";
     ctx.lineWidth=4;
-    ctx.roundRect(tableLeft, tableTop, tableW, tableH, 18);
+    roundRectPath(ctx, tableLeft, tableTop, tableW, tableH, 18);
     ctx.stroke();
 
+    // líneas
     for(let i=1;i<rows.length;i++){
       const y = tableTop + i*rowH;
       ctx.beginPath();
@@ -527,26 +655,27 @@
       ctx.lineTo(tableLeft+tableW, y);
       ctx.stroke();
     }
-
     ctx.beginPath();
     ctx.moveTo(tableLeft+colW, tableTop);
     ctx.lineTo(tableLeft+colW, tableTop+tableH);
     ctx.stroke();
 
+    // texto tabla
     ctx.textBaseline="middle";
-    const labelFont = "600 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    const valueFont = "800 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-
     for(let i=0;i<rows.length;i++){
       const yMid = tableTop + i*rowH + rowH/2;
 
+      // etiqueta
       ctx.fillStyle="#0f172a";
       ctx.textAlign="left";
+      const labelFont = "700 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
       fitText(ctx, rows[i][0], colW-34, labelFont);
       ctx.fillText(rows[i][0], tableLeft+22, yMid);
 
+      // valor
       ctx.fillStyle="#1d4ed8";
       ctx.textAlign="left";
+      const valueFont = "900 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
       fitText(ctx, rows[i][1], colW-34, valueFont);
       ctx.fillText(rows[i][1], tableLeft+colW+22, yMid);
     }
@@ -554,7 +683,8 @@
     return c.toDataURL("image/png");
   }
 
-  const STORAGE_KEY = "ridmanpay_ops_v1";
+  // ========= STORAGE =========
+  const STORAGE_KEY = "ridmanpay_ops_v2";
 
   function loadOps(){
     try{
@@ -564,6 +694,29 @@
   }
   function saveOps(ops){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ops));
+  }
+
+  // ========= UI =========
+  function openReceiptModal(op){
+    currentOp = op;
+
+    const from = op.from || ROUTES[op.direccion]?.from || "—";
+    const to = op.to || ROUTES[op.direccion]?.to || "—";
+    $("pillDir").textContent = `✅ Transferencia ${from} → ${to}`;
+
+    $("txtRecibo").textContent = buildReceiptText(op);
+
+    currentDataUrl = drawReceiptToCanvas(op);
+    $("imgRecibo").src = currentDataUrl;
+
+    const fileBase = `ridmanpay_${op.fecha}_${from}-${to}_${op.monedaEntrega}_${String(op.entrega).replace(".","_")}${(op.cliente||"")?("_"+(op.cliente||"").trim().replace(/\s+/g,"_")):""}.png`;
+    $("smallNote").textContent = `Archivo sugerido: ${fileBase}`;
+
+    $("modalBack").style.display = "flex";
+  }
+
+  function closeModal(){
+    $("modalBack").style.display = "none";
   }
 
   function renderHistory(){
@@ -577,8 +730,9 @@
     }
 
     ops.slice().reverse().forEach(op=>{
-      const dirTxt = op.direccion==="PE_RU" ? "PE → RU" : "RU → PE";
-      const title = `${op.fecha} — ${dirTxt} — ${op.monedaEntrega} ${op.entrega}`;
+      const from = op.from || ROUTES[op.direccion]?.from || "—";
+      const to = op.to || ROUTES[op.direccion]?.to || "—";
+      const title = `${op.fecha} — ${from} → ${to} — ${op.monedaEntrega} ${op.entrega}`;
       const sub = `Imp USD: ${op.importeUSD} | Com: ${op.comisionUSD} | Enviar: ${op.montoEnviarUSD}`;
 
       const row = document.createElement("div");
@@ -586,7 +740,7 @@
       row.innerHTML = `
         <div class="meta">
           <div class="t">${title}</div>
-          <div class="s">${sub}${op.cliente ? " | " + op.cliente : ""}</div>
+          <div class="s">${sub}${(op.cliente||"") ? " | " + op.cliente : ""}</div>
         </div>
         <div class="actions">
           <button class="mini" data-act="open">Abrir</button>
@@ -618,97 +772,51 @@
   let currentOp = null;
   let currentDataUrl = null;
 
-  function openReceiptModal(op){
-    currentOp = op;
-    $("pillDir").textContent = "✅ " + (op.direccion==="PE_RU" ? "Transferencia Perú → Rusia" : "Transferencia Rusia → Perú");
-    $("txtRecibo").textContent = buildReceiptText(op);
-
-    currentDataUrl = drawReceiptToCanvas(op);
-    $("imgRecibo").src = currentDataUrl;
-
-    const namePart = op.cliente ? `_${op.cliente.replaceAll(" ","_")}` : "";
-    $("smallNote").textContent = `Archivo sugerido: ridmanpay_${op.fecha}_${op.direccion}_${op.monedaEntrega}_${op.entrega}${namePart}.png`;
-
-    $("modalBack").style.display="flex";
+  // ========= BUTTONS =========
+  function clearInputs(){
+    $("entrega").value = "";
+    $("cliente").value = "";
+    $("obs").value = "";
+    $("modoComision").value = "AUTO";
+    $("wrapComisionManual").style.display = "none";
+    $("comisionManual").value = "";
   }
 
-  function closeModal(){
-    $("modalBack").style.display="none";
-    currentOp = null;
-    currentDataUrl = null;
-  }
-
-  function exportCSV(){
-    const ops = loadOps();
-    if(!ops.length){
-      alert("No hay registros para exportar.");
-      return;
-    }
-    const headers = [
-      "fecha","direccion","monedaEntrega","entrega","tasaPeru","tasaRusia",
-      "importeUSD","comisionUSD","montoEnviarUSD","recibeText","cliente","obs"
-    ];
-    const rows = [headers.join(",")];
-    for(const o of ops){
-      const line = headers.map(h=>{
-        const v = (o[h] ?? "");
-        const s = String(v).replaceAll('"','""');
-        return `"${s}"`;
-      }).join(",");
-      rows.push(line);
-    }
-    const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
+  async function downloadImage(){
+    if(!currentDataUrl) return;
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `ridmanpay_${todayISO()}.csv`;
+    a.href = currentDataUrl;
+    a.download = "ridmanpay.png";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
   }
+
+  async function shareImage(){
+    if(!currentDataUrl) return;
+
+    // convertir dataURL -> blob
+    const res = await fetch(currentDataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], "ridmanpay.png", {type:"image/png"});
+
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:"Ridman Pay"});
+    } else {
+      alert("En este equipo no está disponible compartir directo. Usa 'Descargar imagen'.");
+    }
+  }
+
+  // ========= INIT =========
+  $("fecha").value = todayISO();
+  applyRouteUI();
+
+  $("direccion").addEventListener("change", ()=>{
+    applyRouteUI();
+  });
 
   $("modoComision").addEventListener("change", ()=>{
-    $("wrapComisionManual").style.display = ($("modoComision").value === "MANUAL") ? "block" : "none";
-  });
-
-  $("btnPreview").addEventListener("click", ()=>{
-    openReceiptModal(computeOperationFromInputs());
-  });
-
-  $("btnGuardarAbrir").addEventListener("click", ()=>{
-    const op = computeOperationFromInputs();
-    const ops = loadOps();
-    ops.push(op);
-    saveOps(ops);
-    renderHistory();
-    openReceiptModal(op);
-  });
-
-  $("btnCopiarTexto").addEventListener("click", ()=>{
-    navigator.clipboard.writeText(buildReceiptText(computeOperationFromInputs()));
-    alert("✅ Texto copiado");
-  });
-
-  $("btnCsv").addEventListener("click", exportCSV);
-
-  $("btnNuevo").addEventListener("click", ()=>{
-    $("direccion").value="PE_RU";
-    $("monedaEntrega").value="PEN";
-    $("entrega").value="";
-    $("tasaPeru").value="";
-    $("tasaRusia").value="";
-    $("cliente").value="";
-    $("obs").value="";
-    $("modoComision").value="AUTO";
-    $("wrapComisionManual").style.display="none";
-    $("comisionManual").value="";
-    window.scrollTo({top:0, behavior:"smooth"});
-  });
-
-  $("btnBorrarTodo").addEventListener("click", ()=>{
-    if(confirm("¿Borrar todos los registros?")){
-      localStorage.removeItem(STORAGE_KEY);
-      renderHistory();
-    }
+    $("wrapComisionManual").style.display = ($("modoComision").value==="MANUAL") ? "block" : "none";
   });
 
   $("btnClose").addEventListener("click", closeModal);
@@ -722,65 +830,74 @@
     alert("✅ Texto copiado");
   });
 
-  $("btnDescargarImg").addEventListener("click", ()=>{
-    if(!currentOp || !currentDataUrl) return;
-    const a = document.createElement("a");
-    const namePart = currentOp.cliente ? `_${currentOp.cliente.replaceAll(" ","_")}` : "";
-    a.download = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}_${currentOp.monedaEntrega}_${currentOp.entrega}${namePart}.png`;
-    a.href = currentDataUrl;
-    a.click();
+  $("btnDescargarImg").addEventListener("click", downloadImage);
+  $("btnShareImg").addEventListener("click", shareImage);
+
+  $("btnPreview").addEventListener("click", ()=>{
+    const op = computeOperationFromInputs();
+    openReceiptModal(op);
   });
 
-  $("btnShareImg").addEventListener("click", async ()=>{
-    if(!currentOp || !currentDataUrl) return;
-
-    try{
-      const res = await fetch(currentDataUrl);
-      const blob = await res.blob();
-      const fileName = `ridmanpay_${currentOp.fecha}_${currentOp.direccion}.png`;
-      const file = new File([blob], fileName, {type:"image/png"});
-
-      if(navigator.canShare && navigator.canShare({files:[file]})){
-        await navigator.share({
-          title: "Ridman Pay",
-          text: "Recibo (imagen)",
-          files: [file]
-        });
-      } else if(navigator.share){
-        await navigator.share({
-          title: "Ridman Pay",
-          text: buildReceiptText(currentOp)
-        });
-        alert("Tu dispositivo no permite compartir imagen directo. Usa 'Descargar imagen'.");
-      } else {
-        alert("Tu navegador no permite compartir. Usa 'Descargar imagen'.");
-      }
-    }catch(err){
-      console.log(err);
-      alert("No se pudo compartir. Usa 'Descargar imagen'.");
-    }
+  $("btnCopiarTexto").addEventListener("click", ()=>{
+    const op = computeOperationFromInputs();
+    navigator.clipboard.writeText(buildReceiptText(op));
+    alert("✅ Texto copiado");
   });
 
-  (function init(){
-    $("fecha").value = todayISO();
+  $("btnGuardarAbrir").addEventListener("click", ()=>{
+    const op = computeOperationFromInputs();
+    const ops = loadOps();
+    ops.push(op);
+    saveOps(ops);
     renderHistory();
-    if("serviceWorker" in navigator){
-      navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-    }
-  })();
+    openReceiptModal(op);
+  });
 
-  if(!CanvasRenderingContext2D.prototype.roundRect){
-    CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
-      r = Math.min(r, w/2, h/2);
-      this.beginPath();
-      this.moveTo(x+r,y);
-      this.arcTo(x+w,y, x+w, y+h, r);
-      this.arcTo(x+w,y+h, x, y+h, r);
-      this.arcTo(x,y+h, x, y, r);
-      this.arcTo(x,y, x+w, y, r);
-      this.closePath();
-      return this;
+  $("btnNuevo").addEventListener("click", clearInputs);
+
+  $("btnBorrarTodo").addEventListener("click", ()=>{
+    if(confirm("¿Seguro que deseas borrar todo el historial?")){
+      localStorage.removeItem(STORAGE_KEY);
+      renderHistory();
+      alert("✅ Listo, historial borrado");
     }
+  });
+
+  $("btnCsv").addEventListener("click", ()=>{
+    const ops = loadOps();
+    if(!ops.length){ alert("No hay registros para exportar."); return; }
+
+    const headers = [
+      "fecha","direccion","monedaEntrega","entrega","tasa1","tasa2",
+      "importeUSD","comisionUSD","montoEnviarUSD","recibeCur","recibeText","cliente","obs"
+    ];
+
+    const lines = [headers.join(",")];
+    ops.forEach(op=>{
+      const row = headers.map(h=>{
+        const v = (op[h] ?? "").toString().replaceAll('"','""');
+        return `"${v}"`;
+      });
+      lines.push(row.join(","));
+    });
+
+    const csv = lines.join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ridmanpay_export.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  renderHistory();
+
+  // ========= SERVICE WORKER (con versión para NO quedarse pegado) =========
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./service-worker.js?v=13").catch(()=>{});
   }
 </script>
 
