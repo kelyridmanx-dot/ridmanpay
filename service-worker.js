@@ -1,11 +1,12 @@
 /* Ridman Pay - Service Worker */
-const CACHE_VERSION = "v12"; // 👈 subí versión para que NO se quede pegado
+const CACHE_VERSION = "v13";
 const CACHE_NAME = `ridmanpay-${CACHE_VERSION}`;
 
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./service-worker.js"
 ];
 
 self.addEventListener("install", (event) => {
