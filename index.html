@@ -15,14 +15,9 @@
       --text:#0f172a;
       --muted:#64748b;
       --line:#dbe5f1;
-      --brand:#0aa7c7;
-      --brand2:#0ea5e9;
-
-      /* ✅ Azul más suave para el recibo */
-      --receiptBlue:#3f79a6;        /* banda superior */
-      --receiptStrip:#7fb2d2;       /* franja título */
-      --receiptBorder:#cfd8e3;
-
+      --blue:#0aa7c7;
+      --blue2:#0ea5e9;
+      --deep:#2f6fa3;
       --ok:#16a34a;
       --value:#1d4ed8;
       --shadow: 0 12px 35px rgba(2,6,23,.10);
@@ -97,7 +92,7 @@
       font-weight:900;
       cursor:pointer;
     }
-    .primary{background:var(--brand2);border-color:transparent;color:#fff}
+    .primary{background:var(--blue2);border-color:transparent;color:#fff}
     .primary:hover{filter:brightness(.95)}
     .danger{background:#fee2e2;border-color:#fecaca}
     .share{
@@ -118,11 +113,11 @@
       border-radius:14px;
       margin-top:10px;
       background:#fff;
+      align-items:center;
     }
     .hist .t{font-weight:900}
     .hist .s{color:var(--muted);font-weight:800;margin-top:4px}
     .mini{padding:10px 12px;border-radius:10px}
-
     /* Modal */
     .back{
       position:fixed;inset:0;
@@ -174,7 +169,7 @@
   <div class="wrap">
     <div class="top">
       <div class="t1">RIDMAN PAY</div>
-      <div class="t2">Cotización de transferencia Perú - Rusia</div>
+      <div class="t2">Cotización de transferencia</div>
     </div>
 
     <div class="card">
@@ -183,9 +178,9 @@
       <div class="tip">
         <div>⚠️</div>
         <div>
-          Tip: si el cliente entrega <b>SOLES</b>, normalmente usa el tipo de cambio <b>ALTO</b> (venta).
-          Si entrega <b>DÓLARES</b>, usa el tipo de cambio <b>BAJO</b> (compra).
-          <b>Si entrega RUBLOS</b>, usamos tasa <b>RUB → USD</b>.
+          Tip: si el cliente entrega <b>SOLES</b>, normalmente usa tipo de cambio <b>ALTO</b> (venta).
+          Si entrega <b>DÓLARES</b>, usa tipo de cambio <b>BAJO</b> (compra).
+          Si entrega <b>RUBLOS</b>, usamos tasa <b>RUB → USD</b>.
         </div>
       </div>
 
@@ -206,11 +201,7 @@
 
         <div>
           <label>Moneda de entrega</label>
-          <select id="monedaEntrega">
-            <option value="PEN">PEN (Soles)</option>
-            <option value="USD">USD (Dólares)</option>
-            <option value="RUB">RUB (Rublo)</option>
-          </select>
+          <select id="monedaEntrega"></select>
         </div>
 
         <div>
@@ -220,12 +211,12 @@
 
         <div class="grid2">
           <div>
-            <label id="lblTasa1">Tasa Perú (PEN → USD)</label>
-            <input id="tasa1" type="number" step="0.0001" inputmode="decimal" placeholder="3.9800">
+            <label id="lblTasaOrigen">Tasa origen</label>
+            <input id="tasaOrigen" type="number" step="0.0001" inputmode="decimal" placeholder="3.9800">
           </div>
           <div>
-            <label id="lblTasa2">Tasa Rusia (USD → RUB)</label>
-            <input id="tasa2" type="number" step="0.0001" inputmode="decimal" placeholder="79.5000">
+            <label id="lblTasaDestino">Tasa destino</label>
+            <input id="tasaDestino" type="number" step="0.0001" inputmode="decimal" placeholder="79.5000">
           </div>
         </div>
 
@@ -278,7 +269,7 @@
   <div class="back" id="modalBack">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalTop">
-        <div class="pill" id="pillDir">✅ Transferencia Perú → Rusia</div>
+        <div class="pill" id="pillDir">✅ Transferencia</div>
         <button class="close" id="btnClose">✕</button>
       </div>
 
@@ -304,50 +295,49 @@
 <script>
   const $ = (id)=>document.getElementById(id);
 
-  // ========= CONFIG RUTAS (según tu Excel) =========
-  const ROUTES = {
-    PE_RU: {
-      key:"PE_RU",
-      from:"Perú", to:"Rusia",
-      entregaAllowed:["PEN","USD"],
-      tasa1Label:"Tasa Perú (PEN → USD)",
-      tasa2Label:"Tasa Rusia (USD → RUB)",
-      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X PEN
-      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X RUB
-      recibeCur:"RUB"
-    },
-    RU_PE: {
-      key:"RU_PE",
-      from:"Rusia", to:"Perú",
-      entregaAllowed:["RUB"],
-      tasa1Label:"Tasa Rusia (RUB → USD)",
-      tasa2Label:"Tasa Perú (USD → PEN)",
-      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X RUB
-      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X PEN
-      recibeCur:"PEN"
-    },
-    RU_CO: {
-      key:"RU_CO",
-      from:"Rusia", to:"Colombia",
-      entregaAllowed:["RUB"],
-      tasa1Label:"Tasa Rusia (RUB → USD)",
-      tasa2Label:"Tasa Colombia (USD → COP)",
-      tasa1Mode:"LOCAL_PER_USD", // 1 USD = X RUB
-      tasa2Mode:"LOCAL_PER_USD", // 1 USD = X COP
-      recibeCur:"COP"
-    }
-  };
-
-  // ========= HELPERS =========
   const round2 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 100) / 100;
   const round4 = (n)=> Math.round((Number(n||0) + Number.EPSILON) * 10000) / 10000;
+
   const fmt2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
   const fmtRate2 = (n)=> Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // RUB en recibe: entero y mostrar .00 (como pediste)
+  const fmtRubRecibe = (n)=>{
+    const roundedInt = Math.round(Number(n||0));
+    return roundedInt.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+  };
 
   function todayISO(){
     const d = new Date();
     const pad=(x)=>String(x).padStart(2,"0");
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  // Tabla de direcciones (según tu lógica)
+  // entregaCurrencies: qué monedas puede entregar el cliente en esa dirección
+  // destCur: moneda final que recibe el destinatario
+  // tasaDestino: siempre USD -> destCur
+  // tasaOrigen: depende de monedaEntrega (PEN->USD o RUB->USD)
+  const ROUTES = {
+    PE_RU: { label:"Transferencia Perú → Rusia", entregaCurrencies:["PEN","USD"], destCur:"RUB" },
+    RU_PE: { label:"Transferencia Rusia → Perú", entregaCurrencies:["RUB","USD"], destCur:"PEN" },
+    RU_CO: { label:"Transferencia Rusia → Colombia", entregaCurrencies:["RUB","USD"], destCur:"COP" },
+  };
+
+  function curLabel(cur){
+    if(cur==="PEN") return "PEN (Soles)";
+    if(cur==="USD") return "USD (Dólares)";
+    if(cur==="RUB") return "RUB (Rublo)";
+    if(cur==="COP") return "COP (Peso colombiano)";
+    return cur;
+  }
+
+  function curPrefix(cur){
+    if(cur==="PEN") return "S/ ";
+    if(cur==="USD") return "USD ";
+    if(cur==="RUB") return "RUB ";
+    if(cur==="COP") return "COP ";
+    return "";
   }
 
   function calcCommissionUSD(importeUSD){
@@ -360,67 +350,85 @@
     return round2(x * 0.017);
   }
 
-  function formatEntrega(cur, amount){
-    if(cur==="PEN") return `S/ ${fmt2(amount)} (PEN)`;
-    if(cur==="USD") return `USD ${fmt2(amount)} (USD)`;
-    if(cur==="RUB") return `RUB ${fmt2(amount)} (RUB)`;
-    return `${cur} ${fmt2(amount)} (${cur})`;
-  }
+  function refreshCurrencyOptions(){
+    const dir = $("direccion").value;
+    const r = ROUTES[dir];
 
-  function formatRecibe(cur, amount){
-    if(cur==="PEN") return `S/ ${fmt2(amount)} (PEN)`;
-    if(cur==="RUB") return `${fmt2(amount)} rublos`;
-    if(cur==="COP") return `COP ${fmt2(amount)} (COP)`;
-    return `${cur} ${fmt2(amount)} (${cur})`;
-  }
-
-  function applyRouteUI(){
-    const r = ROUTES[$("direccion").value] || ROUTES.PE_RU;
-
-    $("lblTasa1").textContent = r.tasa1Label;
-    $("lblTasa2").textContent = r.tasa2Label;
-
-    // Moneda entrega permitida según ruta
+    // options
     const sel = $("monedaEntrega");
-    const allowed = new Set(r.entregaAllowed);
-
-    [...sel.options].forEach(opt=>{
-      opt.disabled = !allowed.has(opt.value);
-      opt.hidden = !allowed.has(opt.value);
+    const current = sel.value;
+    sel.innerHTML = "";
+    r.entregaCurrencies.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = curLabel(c);
+      sel.appendChild(opt);
     });
 
-    // Forzar selección válida
-    if(!allowed.has(sel.value)){
-      sel.value = r.entregaAllowed[0];
+    // mantener selección si existe
+    if(r.entregaCurrencies.includes(current)) sel.value = current;
+
+    updateRateLabels();
+  }
+
+  function updateRateLabels(){
+    const dir = $("direccion").value;
+    const r = ROUTES[dir];
+    const me = $("monedaEntrega").value;
+
+    // Tasa ORIGEN: solo si entrega no es USD
+    if(me==="USD"){
+      $("lblTasaOrigen").textContent = "Tasa origen (no aplica si entrega USD)";
+      $("tasaOrigen").disabled = true;
+      $("tasaOrigen").value = "";
+      $("tasaOrigen").placeholder = "—";
+    } else if(me==="PEN"){
+      $("lblTasaOrigen").textContent = "Tasa Perú (PEN → USD)";
+      $("tasaOrigen").disabled = false;
+      if(!$("tasaOrigen").value) $("tasaOrigen").placeholder = "3.9800";
+    } else if(me==="RUB"){
+      $("lblTasaOrigen").textContent = "Tasa Rusia (RUB → USD)";
+      $("tasaOrigen").disabled = false;
+      if(!$("tasaOrigen").value) $("tasaOrigen").placeholder = "0.0112";
+    } else {
+      $("lblTasaOrigen").textContent = "Tasa origen";
+      $("tasaOrigen").disabled = false;
     }
 
-    // Bloquear selector si solo hay 1 opción
-    sel.disabled = (r.entregaAllowed.length === 1);
+    // Tasa DESTINO siempre USD -> moneda destino
+    $("lblTasaDestino").textContent = `Tasa destino (USD → ${r.destCur})`;
+    if(!$("tasaDestino").value){
+      // placeholders típicos, puedes cambiar
+      $("tasaDestino").placeholder = (r.destCur==="RUB") ? "79.5000" : (r.destCur==="PEN") ? "3.9800" : "3900.00";
+    }
   }
 
   function computeOperationFromInputs(){
-    const r = ROUTES[$("direccion").value] || ROUTES.PE_RU;
+    const dir = $("direccion").value;
+    const r = ROUTES[dir];
 
-    const direccion = r.key;
     const fecha = $("fecha").value || todayISO();
     const monedaEntrega = $("monedaEntrega").value;
     const entrega = Number($("entrega").value || 0);
 
-    const tasa1 = Number($("tasa1").value || 0);
-    const tasa2 = Number($("tasa2").value || 0);
+    const tasaOrigen = Number($("tasaOrigen").value || 0);   // PEN->USD o RUB->USD (según monedaEntrega)
+    const tasaDestino = Number($("tasaDestino").value || 0); // USD->RUB/PEN/COP
 
     const cliente = ($("cliente").value || "").trim();
     const obs = ($("obs").value || "").trim();
 
-    // ✅ convertir entrega → USD (para comisión y monto a enviar)
+    // 1) convertir entrega a USD
     let importeUSD = 0;
-    if(monedaEntrega === "USD"){
+    if(monedaEntrega==="USD"){
       importeUSD = entrega;
-    } else {
-      // Formato: 1 USD = X (PEN/RUB)
-      importeUSD = (tasa1 > 0) ? (entrega / tasa1) : 0;
+    }else{
+      // entrega / (moneda->USD)  si tasa es "PEN por 1 USD" o "RUB por 1 USD"
+      // En tus pantallas: "1 USD = X PEN" y "1 USD = X RUB"
+      // Entonces: USD = entrega / X
+      importeUSD = (tasaOrigen>0) ? (entrega / tasaOrigen) : 0;
     }
 
+    // 2) comisión USD
     const comMode = $("modoComision").value;
     let comisionUSD = 0;
     if(comMode === "MANUAL"){
@@ -429,93 +437,88 @@
       comisionUSD = calcCommissionUSD(importeUSD);
     }
 
+    // 3) monto a enviar en USD
     const montoEnviarUSD = Math.max(0, importeUSD - comisionUSD);
 
-    // ✅ recibe en moneda destino
-    const recibe = montoEnviarUSD * tasa2;
-    const recibeText = formatRecibe(r.recibeCur, recibe);
+    // 4) recibe en moneda destino
+    let recibeText = "";
+    if(r.destCur==="RUB"){
+      const recibeRUB = montoEnviarUSD * tasaDestino;
+      recibeText = `${fmtRubRecibe(recibeRUB)} rublos`;
+    }else{
+      const recibe = montoEnviarUSD * tasaDestino;
+      recibeText = `${curPrefix(r.destCur)}${fmt2(recibe)} (${r.destCur})`;
+    }
 
     return {
-      id: crypto.randomUUID(),
-      direccion,
+      id: (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
+      direccion: dir,
+      dirLabel: r.label,
       fecha,
       monedaEntrega,
       entrega: round2(entrega),
-      tasa1: round4(tasa1),
-      tasa2: round4(tasa2),
+      tasaOrigen: round4(tasaOrigen),
+      tasaDestino: round4(tasaDestino),
+      destCur: r.destCur,
       cliente,
       obs,
       importeUSD: round2(importeUSD),
       comisionUSD: round2(comisionUSD),
       montoEnviarUSD: round2(montoEnviarUSD),
-      recibeCur: r.recibeCur,
-      recibeText,
-      from:r.from,
-      to:r.to,
-      tasa1Label:r.tasa1Label,
-      tasa2Label:r.tasa2Label
+      recibeText
     };
   }
 
+  // ORDEN DEL TEXTO (como tu imagen 2):
+  // Fecha -> Entrega -> Tasa Origen -> Importe USD -> Comisión -> Monto a enviar -> Tasa Destino -> Recibe -> Cliente
   function buildReceiptText(op){
-    const from = op.from || (ROUTES[op.direccion]?.from || "—");
-    const to = op.to || (ROUTES[op.direccion]?.to || "—");
-    const dirTxt = `Transferencia ${from} → ${to}`;
-
-    const cliente = (op.cliente || op.clienteNombre || "").trim();
-    const obs = (op.obs || op.observacion || "").trim();
-
     const lines = [];
-    lines.push(`✅ ${dirTxt}`);
+    lines.push(`✅ ${op.dirLabel}`);
     lines.push(`Fecha: ${op.fecha}`);
-    lines.push(`Entrega: ${formatEntrega(op.monedaEntrega, op.entrega)}`);
 
-    // Mostrar tasas con formato simple
-    // tasa1: 1 USD = X (PEN/RUB)
+    lines.push(`Entrega: ${curPrefix(op.monedaEntrega)}${fmt2(op.entrega)} (${op.monedaEntrega})`);
+
     if(op.monedaEntrega !== "USD"){
-      const cur = op.monedaEntrega;
-      lines.push(`Tasa ${cur} → USD: 1 USD = ${fmtRate2(op.tasa1)} ${cur}`);
+      const tasaLabel = (op.monedaEntrega==="PEN") ? "Tasa PEN → USD" : "Tasa RUB → USD";
+      lines.push(`${tasaLabel}: 1 USD = ${fmtRate2(op.tasaOrigen)} ${op.monedaEntrega}`);
     }
-
-    // tasa2: 1 USD = X destino
-    lines.push(`Tasa USD → ${op.recibeCur}: 1 USD = ${fmtRate2(op.tasa2)} ${op.recibeCur}`);
 
     lines.push(`Importe (USD): USD ${fmt2(op.importeUSD)} USD`);
     lines.push(`Comisión: USD ${fmt2(op.comisionUSD)}`);
     lines.push(`Monto a enviar: USD ${fmt2(op.montoEnviarUSD)} USD`);
+
+    // tasa destino
+    lines.push(`Tasa USD → ${op.destCur}: 1 USD = ${fmtRate2(op.tasaDestino)} ${op.destCur}`);
+
     lines.push(`Recibe: ${op.recibeText}`);
 
-    if(cliente) lines.push(`Cliente: ${cliente}`);
-    if(obs) lines.push(`Observación: ${obs}`);
+    if(op.cliente) lines.push(`Cliente: ${op.cliente}`);
+    if(op.obs) lines.push(`Obs: ${op.obs}`);
 
     return lines.join("\n");
   }
 
-  // ========= DIBUJO DEL RECIBO (IMAGEN) =========
-  function roundRectPath(ctx,x,y,w,h,r){
-    const rr = Math.min(r, w/2, h/2);
+  // Canvas helper
+  function rr(ctx,x,y,w,h,r){
+    const radius = Math.min(r, w/2, h/2);
     ctx.beginPath();
-    ctx.moveTo(x+rr,y);
-    ctx.arcTo(x+w,y,x+w,y+h,rr);
-    ctx.arcTo(x+w,y+h,x,y+h,rr);
-    ctx.arcTo(x,y+h,x,y,rr);
-    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.moveTo(x+radius,y);
+    ctx.arcTo(x+w,y,x+w,y+h,radius);
+    ctx.arcTo(x+w,y+h,x,y+h,radius);
+    ctx.arcTo(x,y+h,x,y,radius);
+    ctx.arcTo(x,y,x+w,y,radius);
     ctx.closePath();
   }
 
-  function fitText(ctx, text, maxWidth, baseFont){
-    ctx.font = baseFont;
-    if(ctx.measureText(text).width <= maxWidth) return;
-    // reducir tamaño
-    const m = baseFont.match(/(\d+)px/);
-    if(!m) return;
-    let size = Number(m[1]);
-    while(size > 18){
-      const f = baseFont.replace(/\d+px/, `${size}px`);
-      ctx.font = f;
-      if(ctx.measureText(text).width <= maxWidth) return;
+  function fitTitle(ctx, text, maxWidth){
+    // baja tamaño si es largo (para Rusia → Colombia)
+    let size = 52;
+    while(size >= 28){
+      ctx.font = `900 ${size}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      if(ctx.measureText(text).width <= maxWidth) return size;
       size -= 2;
     }
+    return 28;
   }
 
   function drawReceiptToCanvas(op){
@@ -525,7 +528,7 @@
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,c.width,c.height);
 
-    // Fondo blanco total
+    // fondo blanco
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0,0,c.width,c.height);
 
@@ -533,351 +536,326 @@
     const cardX = pad;
     const cardY = pad;
     const cardW = c.width - pad*2;
-
-    // Contenido tabla (✅ incluye cliente SIEMPRE si existe)
-    const cliente = (op.cliente || op.clienteNombre || "").trim();
-    const obs = (op.obs || op.observacion || "").trim();
-
-    const rows = [];
-    rows.push(["Fecha:", op.fecha]);
-    rows.push(["Entrega:", formatEntrega(op.monedaEntrega, op.entrega)]);
-
-    if(op.monedaEntrega !== "USD"){
-      rows.push([`Tasa ${op.monedaEntrega} → USD`, `1 USD = ${fmtRate2(op.tasa1)} ${op.monedaEntrega}`]);
-    }
-
-    rows.push([`Tasa USD → ${op.recibeCur}`, `1 USD = ${fmtRate2(op.tasa2)} ${op.recibeCur}`]);
-    rows.push(["Importe (USD):", `USD ${fmt2(op.importeUSD)} USD`]);
-    rows.push(["Comisión:", `USD ${fmt2(op.comisionUSD)}`]);
-    rows.push(["Monto a enviar:", `USD ${fmt2(op.montoEnviarUSD)} USD`]);
-    rows.push(["Recibe:", op.recibeText]);
-
-    if(cliente) rows.push(["Cliente:", cliente.toUpperCase()]);
-    if(obs) rows.push(["Obs:", obs]);
-
-    // Medidas
-    const headerH = 200;         // banda azul grande
-    const stripH  = 90;          // franja titulo
-    const gapAfterStrip = 18;
-
-    const rowH = 98;
-    const tableH = rows.length * rowH;
-
-    const cardH = headerH + stripH + gapAfterStrip + tableH + 34; // ✅ sin “bloque azul” abajo
-    const cardY2 = cardY;
-    const cardH2 = Math.min(cardH, c.height - pad*2);
+    const cardH = c.height - pad*2;
 
     // sombra suave
     ctx.save();
     ctx.fillStyle = "rgba(15,23,42,.08)";
-    roundRectPath(ctx, cardX+10, cardY2+12, cardW, cardH2, 28);
+    rr(ctx, cardX+8, cardY+12, cardW, cardH, 28);
     ctx.fill();
     ctx.restore();
 
-    // tarjeta blanca con borde gris
+    // tarjeta
     ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--receiptBorder").trim() || "#cfd8e3";
+    ctx.strokeStyle = "#dbe5f1";
     ctx.lineWidth = 4;
-    roundRectPath(ctx, cardX, cardY2, cardW, cardH2, 28);
+    rr(ctx, cardX, cardY, cardW, cardH, 28);
     ctx.fill();
     ctx.stroke();
 
-    // Header azul (arriba)
-    const blue = getComputedStyle(document.documentElement).getPropertyValue("--receiptBlue").trim() || "#3f79a6";
-    ctx.fillStyle = blue;
-    roundRectPath(ctx, cardX, cardY2, cardW, headerH, 28);
+    // header AZUL (solo arriba)
+    const headerH = 190;
+    ctx.fillStyle = "#2f6fa3";
+    rr(ctx, cardX, cardY, cardW, headerH, 28);
     ctx.fill();
 
-    // Texto Ridman Pay
+    // Título "Ridman Pay"
     ctx.fillStyle = "#ffffff";
+    ctx.font = "900 86px system-ui, -apple-system, Segoe UI, Roboto, Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
-    ctx.font = "900 84px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillText("Ridman Pay", cardX + cardW/2, cardY2 + 130);
+    ctx.fillText("Ridman Pay", cardX + cardW/2, cardY + 122);
 
-    // Línea separación
-    ctx.strokeStyle = "rgba(255,255,255,.55)";
+    // línea bajo header
+    ctx.strokeStyle = "#dbe5f1";
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(cardX + 42, cardY2 + headerH);
-    ctx.lineTo(cardX + cardW - 42, cardY2 + headerH);
+    ctx.moveTo(cardX, cardY + headerH);
+    ctx.lineTo(cardX + cardW, cardY + headerH);
     ctx.stroke();
 
-    // Franja título (azul claro) + check + texto (con auto-ajuste)
-    const stripY = cardY2 + headerH + 14;
-    const strip = getComputedStyle(document.documentElement).getPropertyValue("--receiptStrip").trim() || "#7fb2d2";
-    ctx.fillStyle = strip;
-    roundRectPath(ctx, cardX + 22, stripY, cardW - 44, stripH, 18);
+    // banda blanca del contenido (para que no quede azul abajo)
+    const contentTop = cardY + headerH;
+    const contentH = cardH - headerH;
+    ctx.fillStyle = "#ffffff";
+    rr(ctx, cardX, contentTop, cardW, contentH, 0);
     ctx.fill();
 
-    // Check
-    ctx.fillStyle = "#22c55e";
-    roundRectPath(ctx, cardX + 46, stripY + 18, 54, 54, 12);
+    // fila título transferencia (check + texto)
+    const titleY = cardY + headerH + 78;
+
+    // check verde
+    ctx.fillStyle = "#16a34a";
+    rr(ctx, cardX + 34, titleY - 48, 72, 72, 14);
     ctx.fill();
     ctx.fillStyle = "#ffffff";
-    ctx.font = "900 38px system-ui";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.fillText("✓", cardX + 73, stripY + 45);
+    ctx.font = "900 46px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("✓", cardX + 70, titleY + 8);
 
-    // Título transferencia
-    const dirTxt = `Transferencia ${op.from || ROUTES[op.direccion]?.from || ""} → ${op.to || ROUTES[op.direccion]?.to || ""}`;
+    // texto dirección (auto-ajuste)
     ctx.fillStyle = "#0f172a";
-    ctx.textAlign="left";
-    ctx.textBaseline="middle";
-    const titleX = cardX + 115;
-    const titleY = stripY + (stripH/2);
-    const maxTitleW = (cardX + cardW - 44) - titleX - 18;
-    const baseTitleFont = "900 44px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    fitText(ctx, dirTxt, maxTitleW, baseTitleFont);
-    ctx.fillText(dirTxt, titleX, titleY);
+    ctx.textAlign = "left";
+    const maxTitleW = cardW - 34 - 34 - 72 - 24;
+    const usedSize = fitTitle(ctx, op.dirLabel, maxTitleW);
+    ctx.font = `900 ${usedSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.fillText(op.dirLabel, cardX + 130, titleY + 8);
 
-    // Tabla (blanca)
-    const tableTop = stripY + stripH + gapAfterStrip;
+    // tabla
+    const tableTop = titleY + 54;
     const tableLeft = cardX + 26;
     const tableW = cardW - 52;
     const colW = tableW/2;
 
+    // filas en orden (como tu imagen 2)
+    const rows = [];
+    rows.push(["Fecha:", op.fecha]);
+    rows.push(["Entrega:", `${curPrefix(op.monedaEntrega)}${fmt2(op.entrega)} (${op.monedaEntrega})`]);
+
+    if(op.monedaEntrega !== "USD"){
+      const tasaLabel = (op.monedaEntrega==="PEN") ? "Tasa PEN → USD" : "Tasa RUB → USD";
+      rows.push([tasaLabel, `1 USD = ${fmtRate2(op.tasaOrigen)} ${op.monedaEntrega}`]);
+    }
+
+    rows.push(["Importe (USD):", `USD ${fmt2(op.importeUSD)} USD`]);
+    rows.push(["Comisión:", `USD ${fmt2(op.comisionUSD)}`]);
+    rows.push(["Monto a enviar:", `USD ${fmt2(op.montoEnviarUSD)} USD`]);
+
+    rows.push([`Tasa USD → ${op.destCur}`, `1 USD = ${fmtRate2(op.tasaDestino)} ${op.destCur}`]);
+    rows.push(["Recibe:", op.recibeText]);
+
+    if(op.cliente) rows.push(["Cliente:", op.cliente.toUpperCase()]);
+    if(op.obs) rows.push(["Obs:", op.obs]);
+
+    const rowH = 104;
+    const tableH = rows.length * rowH;
+
     ctx.fillStyle = "#ffffff";
-    roundRectPath(ctx, tableLeft, tableTop, tableW, tableH, 18);
+    rr(ctx, tableLeft, tableTop, tableW, tableH, 18);
     ctx.fill();
 
     ctx.strokeStyle="#cfd8e3";
     ctx.lineWidth=4;
-    roundRectPath(ctx, tableLeft, tableTop, tableW, tableH, 18);
+    rr(ctx, tableLeft, tableTop, tableW, tableH, 18);
     ctx.stroke();
 
     // líneas
-    for(let i=1;i<rows.length;i++){
-      const y = tableTop + i*rowH;
-      ctx.beginPath();
-      ctx.moveTo(tableLeft, y);
-      ctx.lineTo(tableLeft+tableW, y);
-      ctx.stroke();
-    }
     ctx.beginPath();
-    ctx.moveTo(tableLeft+colW, tableTop);
-    ctx.lineTo(tableLeft+colW, tableTop+tableH);
+    ctx.moveTo(tableLeft + colW, tableTop);
+    ctx.lineTo(tableLeft + colW, tableTop + tableH);
+    for(let i=1;i<rows.length;i++){
+      ctx.moveTo(tableLeft, tableTop + i*rowH);
+      ctx.lineTo(tableLeft + tableW, tableTop + i*rowH);
+    }
     ctx.stroke();
 
     // texto tabla
-    ctx.textBaseline="middle";
     for(let i=0;i<rows.length;i++){
-      const yMid = tableTop + i*rowH + rowH/2;
+      const y = tableTop + i*rowH;
 
-      // etiqueta
-      ctx.fillStyle="#0f172a";
+      // label
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "900 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
       ctx.textAlign="left";
-      const labelFont = "700 30px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      fitText(ctx, rows[i][0], colW-34, labelFont);
-      ctx.fillText(rows[i][0], tableLeft+22, yMid);
+      ctx.fillText(rows[i][0], tableLeft + 22, y + 66);
 
-      // valor
-      ctx.fillStyle="#1d4ed8";
-      ctx.textAlign="left";
-      const valueFont = "900 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-      fitText(ctx, rows[i][1], colW-34, valueFont);
-      ctx.fillText(rows[i][1], tableLeft+colW+22, yMid);
+      // value
+      ctx.fillStyle = "#1d4ed8";
+      ctx.font = "900 34px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+      ctx.fillText(rows[i][1], tableLeft + colW + 22, y + 66);
     }
-
-    return c.toDataURL("image/png");
   }
 
-  // ========= STORAGE =========
-  const STORAGE_KEY = "ridmanpay_ops_v2";
-
-  function loadOps(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch { return []; }
-  }
-  function saveOps(ops){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ops));
+  function canvasToPngDataUrl(){
+    return $("canvasRecibo").toDataURL("image/png");
   }
 
-  // ========= UI =========
-  function openReceiptModal(op){
-    currentOp = op;
-
-    const from = op.from || ROUTES[op.direccion]?.from || "—";
-    const to = op.to || ROUTES[op.direccion]?.to || "—";
-    $("pillDir").textContent = `✅ Transferencia ${from} → ${to}`;
-
-    $("txtRecibo").textContent = buildReceiptText(op);
-
-    currentDataUrl = drawReceiptToCanvas(op);
-    $("imgRecibo").src = currentDataUrl;
-
-    const fileBase = `ridmanpay_${op.fecha}_${from}-${to}_${op.monedaEntrega}_${String(op.entrega).replace(".","_")}${(op.cliente||"")?("_"+(op.cliente||"").trim().replace(/\s+/g,"_")):""}.png`;
-    $("smallNote").textContent = `Archivo sugerido: ${fileBase}`;
-
-    $("modalBack").style.display = "flex";
+  function suggestedFilename(op){
+    const safe = (s)=>String(s||"").replace(/[^\w\-]+/g,"_");
+    const dir = op.dirLabel.replace(/\s+/g,"-").replace(/[→]/g,"-");
+    const client = op.cliente ? "_" + safe(op.cliente) : "";
+    return `ridmanpay_${op.fecha}_${safe(dir)}_${op.monedaEntrega}_${safe(op.entrega)}${client}.png`;
   }
 
-  function closeModal(){
-    $("modalBack").style.display = "none";
+  function saveHistory(op){
+    const key="ridmanpay_ops_v2";
+    const arr = JSON.parse(localStorage.getItem(key) || "[]");
+    arr.unshift(op);
+    localStorage.setItem(key, JSON.stringify(arr.slice(0,50)));
+  }
+
+  function loadHistory(){
+    const key="ridmanpay_ops_v2";
+    return JSON.parse(localStorage.getItem(key) || "[]");
   }
 
   function renderHistory(){
-    const ops = loadOps();
-    const box = $("historial");
-    box.innerHTML = "";
-
-    if(!ops.length){
-      box.innerHTML = `<div style="color:#6b7480; font-weight:900; padding:8px 2px">Aún no hay registros.</div>`;
+    const el = $("historial");
+    const arr = loadHistory();
+    if(arr.length===0){
+      el.innerHTML = `<div class="s" style="color:var(--muted);font-weight:800">Aún no hay operaciones guardadas.</div>`;
       return;
     }
-
-    ops.slice().reverse().forEach(op=>{
-      const from = op.from || ROUTES[op.direccion]?.from || "—";
-      const to = op.to || ROUTES[op.direccion]?.to || "—";
-      const title = `${op.fecha} — ${from} → ${to} — ${op.monedaEntrega} ${op.entrega}`;
-      const sub = `Imp USD: ${op.importeUSD} | Com: ${op.comisionUSD} | Enviar: ${op.montoEnviarUSD}`;
-
-      const row = document.createElement("div");
-      row.className="item";
-      row.innerHTML = `
-        <div class="meta">
-          <div class="t">${title}</div>
-          <div class="s">${sub}${(op.cliente||"") ? " | " + op.cliente : ""}</div>
+    el.innerHTML = "";
+    arr.forEach(op=>{
+      const wrap = document.createElement("div");
+      wrap.className="item";
+      wrap.innerHTML = `
+        <div>
+          <div class="t">${op.fecha} — ${op.dirLabel}</div>
+          <div class="s">Entrega: ${curPrefix(op.monedaEntrega)}${fmt2(op.entrega)} (${op.monedaEntrega}) | Imp USD: ${fmt2(op.importeUSD)} | Com: ${fmt2(op.comisionUSD)} | Enviar: ${fmt2(op.montoEnviarUSD)}</div>
         </div>
-        <div class="actions">
-          <button class="mini" data-act="open">Abrir</button>
-          <button class="mini" data-act="copy">Copiar</button>
-          <button class="mini" data-act="del">Eliminar</button>
+        <div class="btns" style="margin:0">
+          <button class="mini" data-act="abrir" data-id="${op.id}">Abrir</button>
+          <button class="mini" data-act="copiar" data-id="${op.id}">Copiar</button>
+          <button class="mini danger" data-act="eliminar" data-id="${op.id}">Eliminar</button>
         </div>
       `;
+      el.appendChild(wrap);
+    });
 
-      row.querySelectorAll("button").forEach(b=>{
-        b.addEventListener("click", ()=>{
-          const act = b.getAttribute("data-act");
-          if(act==="open") openReceiptModal(op);
-          if(act==="copy"){
-            navigator.clipboard.writeText(buildReceiptText(op));
-            alert("✅ Texto copiado");
-          }
-          if(act==="del"){
-            const all = loadOps();
-            saveOps(all.filter(x=>x.id !== op.id));
-            renderHistory();
-          }
-        });
+    el.querySelectorAll("button[data-act]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const act = btn.getAttribute("data-act");
+        const id = btn.getAttribute("data-id");
+        const arr = loadHistory();
+        const op = arr.find(x=>x.id===id);
+        if(act==="eliminar"){
+          const filtered = arr.filter(x=>x.id!==id);
+          localStorage.setItem("ridmanpay_ops_v2", JSON.stringify(filtered));
+          renderHistory();
+          return;
+        }
+        if(!op) return;
+        if(act==="copiar"){
+          navigator.clipboard.writeText(buildReceiptText(op)).catch(()=>{});
+          return;
+        }
+        if(act==="abrir"){
+          openModalWith(op);
+          return;
+        }
       });
-
-      box.appendChild(row);
     });
   }
 
-  let currentOp = null;
-  let currentDataUrl = null;
+  function openModalWith(op){
+    $("pillDir").textContent = `✅ ${op.dirLabel}`;
+    const txt = buildReceiptText(op);
+    $("txtRecibo").textContent = txt;
 
-  // ========= BUTTONS =========
-  function clearInputs(){
-    $("entrega").value = "";
-    $("cliente").value = "";
-    $("obs").value = "";
-    $("modoComision").value = "AUTO";
-    $("wrapComisionManual").style.display = "none";
-    $("comisionManual").value = "";
+    drawReceiptToCanvas(op);
+    const url = canvasToPngDataUrl();
+    $("imgRecibo").src = url;
+
+    $("smallNote").textContent = `Archivo sugerido: ${suggestedFilename(op)}`;
+
+    $("modalBack").style.display = "flex";
+
+    // botones modal
+    $("btnCopiarModal").onclick = ()=>navigator.clipboard.writeText(txt).catch(()=>{});
+
+    $("btnDescargarImg").onclick = ()=>{
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = suggestedFilename(op);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    };
+
+    $("btnShareImg").onclick = async ()=>{
+      try{
+        // convertir dataURL a blob
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const file = new File([blob], suggestedFilename(op), {type:"image/png"});
+        if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file], title:"Ridman Pay"});
+          return;
+        }
+        // fallback: descargar
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = suggestedFilename(op);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }catch(e){
+        // fallback copiar texto
+        navigator.clipboard.writeText(txt).catch(()=>{});
+      }
+    };
   }
 
-  async function downloadImage(){
-    if(!currentDataUrl) return;
-    const a = document.createElement("a");
-    a.href = currentDataUrl;
-    a.download = "ridmanpay.png";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  }
-
-  async function shareImage(){
-    if(!currentDataUrl) return;
-
-    // convertir dataURL -> blob
-    const res = await fetch(currentDataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], "ridmanpay.png", {type:"image/png"});
-
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:"Ridman Pay"});
-    } else {
-      alert("En este equipo no está disponible compartir directo. Usa 'Descargar imagen'.");
-    }
-  }
-
-  // ========= INIT =========
-  $("fecha").value = todayISO();
-  applyRouteUI();
-
-  $("direccion").addEventListener("change", ()=>{
-    applyRouteUI();
-  });
-
+  // Eventos
   $("modoComision").addEventListener("change", ()=>{
     $("wrapComisionManual").style.display = ($("modoComision").value==="MANUAL") ? "block" : "none";
   });
 
-  $("btnClose").addEventListener("click", closeModal);
-  $("modalBack").addEventListener("click", (e)=>{
-    if(e.target === $("modalBack")) closeModal();
+  $("direccion").addEventListener("change", ()=>{
+    refreshCurrencyOptions();
   });
 
-  $("btnCopiarModal").addEventListener("click", ()=>{
-    if(!currentOp) return;
-    navigator.clipboard.writeText(buildReceiptText(currentOp));
-    alert("✅ Texto copiado");
+  $("monedaEntrega").addEventListener("change", ()=>{
+    updateRateLabels();
   });
 
-  $("btnDescargarImg").addEventListener("click", downloadImage);
-  $("btnShareImg").addEventListener("click", shareImage);
+  $("btnClose").addEventListener("click", ()=> $("modalBack").style.display="none");
+  $("modalBack").addEventListener("click", (e)=>{ if(e.target.id==="modalBack") $("modalBack").style.display="none"; });
 
   $("btnPreview").addEventListener("click", ()=>{
     const op = computeOperationFromInputs();
-    openReceiptModal(op);
-  });
-
-  $("btnCopiarTexto").addEventListener("click", ()=>{
-    const op = computeOperationFromInputs();
-    navigator.clipboard.writeText(buildReceiptText(op));
-    alert("✅ Texto copiado");
+    openModalWith(op);
   });
 
   $("btnGuardarAbrir").addEventListener("click", ()=>{
     const op = computeOperationFromInputs();
-    const ops = loadOps();
-    ops.push(op);
-    saveOps(ops);
+    saveHistory(op);
     renderHistory();
-    openReceiptModal(op);
+    openModalWith(op);
   });
 
-  $("btnNuevo").addEventListener("click", clearInputs);
+  $("btnCopiarTexto").addEventListener("click", ()=>{
+    const op = computeOperationFromInputs();
+    navigator.clipboard.writeText(buildReceiptText(op)).catch(()=>{});
+  });
+
+  $("btnNuevo").addEventListener("click", ()=>{
+    $("entrega").value = "";
+    $("cliente").value = "";
+    $("obs").value = "";
+  });
 
   $("btnBorrarTodo").addEventListener("click", ()=>{
-    if(confirm("¿Seguro que deseas borrar todo el historial?")){
-      localStorage.removeItem(STORAGE_KEY);
-      renderHistory();
-      alert("✅ Listo, historial borrado");
-    }
+    localStorage.removeItem("ridmanpay_ops_v2");
+    renderHistory();
   });
 
   $("btnCsv").addEventListener("click", ()=>{
-    const ops = loadOps();
-    if(!ops.length){ alert("No hay registros para exportar."); return; }
+    const arr = loadHistory();
+    if(arr.length===0) return;
 
     const headers = [
-      "fecha","direccion","monedaEntrega","entrega","tasa1","tasa2",
-      "importeUSD","comisionUSD","montoEnviarUSD","recibeCur","recibeText","cliente","obs"
+      "fecha","direccion","moneda_entrega","entrega","tasa_origen","tasa_destino","importe_usd","comision_usd","monto_enviar_usd","recibe","cliente","obs"
     ];
-
     const lines = [headers.join(",")];
-    ops.forEach(op=>{
-      const row = headers.map(h=>{
-        const v = (op[h] ?? "").toString().replaceAll('"','""');
-        return `"${v}"`;
-      });
+
+    arr.forEach(op=>{
+      const row = [
+        op.fecha,
+        `"${op.dirLabel.replace(/"/g,'""')}"`,
+        op.monedaEntrega,
+        op.entrega,
+        op.tasaOrigen,
+        op.tasaDestino,
+        op.importeUSD,
+        op.comisionUSD,
+        op.montoEnviarUSD,
+        `"${String(op.recibeText).replace(/"/g,'""')}"`,
+        `"${String(op.cliente||"").replace(/"/g,'""')}"`,
+        `"${String(op.obs||"").replace(/"/g,'""')}"`
+      ];
       lines.push(row.join(","));
     });
 
@@ -886,20 +864,22 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "ridmanpay_export.csv";
+    a.download = "ridmanpay_historial.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   });
 
+  // Init
+  $("fecha").value = todayISO();
+  refreshCurrencyOptions();
   renderHistory();
 
-  // ========= SERVICE WORKER (con versión para NO quedarse pegado) =========
+  // Registrar Service Worker
   if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./service-worker.js?v=13").catch(()=>{});
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
   }
 </script>
-
 </body>
 </html>
